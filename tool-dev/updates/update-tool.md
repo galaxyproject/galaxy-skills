@@ -67,7 +67,7 @@ Check `<outputs>` for:
 - Matching filter values to include options
 
 ### 6. Update Help Section
-If help is minimal, expand using RST format. See `help-sections.md`.
+If help is minimal, expand using RST format. See `../shared/help-sections.md`.
 
 ### 7. Run Tests
 ```bash

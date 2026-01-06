@@ -6,13 +6,21 @@ Skill for updating Galaxy tool wrappers when underlying CLI tools release new ve
 
 | File | Purpose |
 |------|---------|
+| `SKILL.md` | Main router and overview |
 | `update-tool.md` | Main workflow - step-by-step update process |
 | `research-upstream.md` | How to check for breaking changes |
-| `xml-structure.md` | Galaxy XML anatomy reference |
-| `help-sections.md` | RST documentation formatting |
-| `testing.md` | Planemo test writing and debugging |
 | `common-bugs.md` | Frequent bug patterns and fixes |
 | `commit-template.md` | Standard commit message formats |
+
+### Shared References
+
+These files are shared with `tool-creation/`:
+
+| File | Purpose |
+|------|---------|
+| `../shared/xml-structure.md` | Galaxy XML anatomy reference |
+| `../shared/help-sections.md` | RST documentation formatting |
+| `../shared/testing.md` | Planemo test writing and debugging |
 
 ## Usage
 
