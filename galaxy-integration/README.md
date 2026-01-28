@@ -1,6 +1,6 @@
 # Galaxy Integration
 
-Using Galaxy MCP and BioBlend-based scripts to interact with Galaxy instances.
+Using Galaxy MCP, JupyterLite notebooks, and BioBlend-based scripts to interact with Galaxy instances.
 
 This is the canonical documentation for Galaxy instance integration across skills in this repository.
 
@@ -13,13 +13,38 @@ Galaxy integration provides programmatic access to Galaxy instances. Useful for:
 - **Testing** - Validate converted tools on Galaxy instances
 - **Automation** - Streamline development workflows
 - **Validation** - Compare outputs (e.g., NF vs Galaxy)
+- **Analysis** - Write JupyterLite notebooks that interact with Galaxy datasets
+
+## Structure
+
+```
+galaxy-integration/
+├── SKILL.md                    # Router to sub-skills
+├── galaxy-integration.md       # Detailed MCP + BioBlend docs
+│
+├── jupyterlite/                # JupyterLite notebook skill
+│   ├── SKILL.md               # gxy package reference
+│   └── examples/              # Example notebooks
+│
+├── mcp-reference/              # MCP tools reference
+│   ├── SKILL.md               # Full MCP tools reference
+│   ├── history-access.md      # History/dataset access patterns
+│   └── gotchas.md             # Common pitfalls (keychain, URL slugs)
+│
+├── scripts/                    # BioBlend automation
+│   └── galaxy_tool_checker.py
+│
+└── examples/                   # Tool checking and workflow testing
+```
 
 ## Key Files
 
-- **`galaxy-integration.md`** - Main guide covering setup, tool checking, workflow testing
-- **`SKILL.md`** - Skill router and usage patterns
+- **`SKILL.md`** - Router to sub-skills
+- **`jupyterlite/SKILL.md`** - gxy package for JupyterLite notebooks
+- **`mcp-reference/SKILL.md`** - Complete MCP tools reference
+- **`galaxy-integration.md`** - Detailed guide (MCP + BioBlend)
 - **`scripts/`** - Automation scripts (galaxy_tool_checker.py)
-- **`examples/`** - Practical examples of tool checking and workflow testing
+- **`examples/`** - Tool checking and workflow testing examples
 
 ## Usage Context
 

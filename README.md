@@ -113,11 +113,12 @@ Convert Nextflow processes and workflows to Galaxy tools and workflows.
 
 **galaxy-integration** ✅
 
-Test tools and workflows on Galaxy instances.
+Interact with Galaxy instances via MCP, JupyterLite, or BioBlend.
 
-- Tool checking scripts
-- Workflow testing examples
-- Galaxy instance integration
+- **jupyterlite/** - Write notebooks using gxy package
+- **mcp-reference/** - Complete MCP tools reference
+- Tool checking and workflow testing examples
+- BioBlend automation scripts
 
 ---
 
@@ -139,7 +140,9 @@ skills/
 │
 ├── nf-to-galaxy/                # ✅ Nextflow → Galaxy conversion
 │
-└── galaxy-integration/          # ✅ Galaxy instance testing
+└── galaxy-integration/          # ✅ Galaxy instance integration
+    ├── jupyterlite/             # JupyterLite notebooks (gxy package)
+    └── mcp-reference/           # MCP tools reference
 ```
 
 ---
