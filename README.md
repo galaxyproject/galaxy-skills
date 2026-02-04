@@ -120,6 +120,17 @@ Interact with Galaxy instances via MCP, JupyterLite, or BioBlend.
 - Tool checking and workflow testing examples
 - BioBlend automation scripts
 
+### Collection Manipulation
+
+**collection-manipulation** ✅
+
+Transform Galaxy dataset collections reproducibly using native tools.
+
+- Filter, sort, relabel, merge, flatten, nest collections
+- 20+ collection operation tools
+- Apply Rules DSL for complex restructuring
+- API patterns and pitfall avoidance
+
 ---
 
 ## Repository Structure
@@ -140,9 +151,13 @@ skills/
 │
 ├── nf-to-galaxy/                # ✅ Nextflow → Galaxy conversion
 │
-└── galaxy-integration/          # ✅ Galaxy instance integration
-    ├── jupyterlite/             # JupyterLite notebooks (gxy package)
-    └── mcp-reference/           # MCP tools reference
+├── galaxy-integration/          # ✅ Galaxy instance integration
+│   ├── jupyterlite/             # JupyterLite notebooks (gxy package)
+│   └── mcp-reference/           # MCP tools reference
+│
+└── collection-manipulation/     # ✅ Collection transformations
+    ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
+    └── references/              # Tools catalog, Apply Rules DSL, API, tests
 ```
 
 ---

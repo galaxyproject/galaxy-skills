@@ -105,6 +105,7 @@ Place your skill in the appropriate category:
 | `hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
 | `nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
 | `galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
+| `collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
 
 ---
 
