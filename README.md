@@ -127,7 +127,7 @@ Interact with Galaxy instances via MCP, JupyterLite, or BioBlend.
 Transform Galaxy dataset collections reproducibly using native tools.
 
 - Filter, sort, relabel, merge, flatten, nest collections
-- 20+ collection operation tools
+- 26 collection operation tools
 - Apply Rules DSL for complex restructuring
 - API patterns and pitfall avoidance
 
