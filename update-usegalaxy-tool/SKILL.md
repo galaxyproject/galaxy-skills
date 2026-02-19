@@ -75,7 +75,7 @@ For each section in `$3` (comma-separated):
 
 ### Step 5 — Edit files
 
-Read `reference.md` (in this skill's directory) for file format details.
+Read `references/file-formats.md` (in this skill's directory) for file format details.
 
 **Adding tool to `.yml`:** Insert under `tools:`:
 ```yaml
@@ -97,7 +97,7 @@ Read `reference.md` (in this skill's directory) for file format details.
 
 **Removing a tool:** Delete the tool's `- name: ... owner: ...` block from `.yml` and the full block (including revisions/section info) from `.yml.lock`.
 
-**Creating new section files:** See `reference.md` for templates.
+**Creating new section files:** See `references/file-formats.md` for templates.
 
 ### Step 6 — Lint
 
@@ -115,3 +115,13 @@ Then check `git diff` to see if fix_lockfile changed anything unexpected beyond 
 - Stage all changed files
 - Commit with message like: `Update $TOOL_NAME to $VERSION in $SECTIONS`
 - **Do NOT push or create PR.** Ask the user if they want to push/PR.
+
+## Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| ToolShed API returns empty array | Tool name or owner is misspelled | Double-check name/owner against toolshed.g2.bx.psu.edu |
+| No revision matches requested version | Version string doesn't match ToolShed metadata exactly | Use `latest` to find the most recent, then check what version strings are available |
+| `fix_lockfile.py` reorders unrelated tools | Lock file was previously unsorted | Expected — review the diff and commit the normalization separately |
+| Tool appears in unexpected sections after update | Existing entries in other sections weren't noticed in Step 3 | Re-run Step 3 and review all occurrences before editing |
+| YAML parse errors after editing | Indentation mismatch (spaces vs tabs, wrong depth) | Lock files use 2-space indent; revision hashes are indented under `revisions:` with `- ` prefix |
