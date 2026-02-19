@@ -2,7 +2,7 @@
 
 Standalone reference for planemo testing. Used by tool-dev and other skills (nf-to-galaxy, galaxy-integration).
 
-For the full tool development guide, see `../SKILL.md`.
+For the full tool development guide, see `../SKILL.md`. For the complete assertion specification, see the [Galaxy Tool XSD Schema](https://docs.galaxyproject.org/en/latest/dev/schema.html).
 
 ---
 

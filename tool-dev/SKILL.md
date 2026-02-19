@@ -348,7 +348,7 @@ This causes more bugs than anything else in Galaxy XML. The rules:
 | Galaxy parameter | `'$param'` | `--input '$input_file'` |
 | Galaxy parameter (no quotes needed) | `$param` | `--count $max_count` |
 | Shell environment variable | `\${VAR}` | `--workers \${GALAXY_SLOTS:-1}` |
-| Cheetah loop variable | `'$item'` | `'$otype'` inside `#for` |
+| Cheetah loop variable | `'$item'` | `'$item'` inside `#for` |
 | Literal dollar in shell | `\$` | `awk '{print \$1}'` |
 
 **Critical:** Galaxy parameters are single-quoted (`'$param'`). Environment variables use backslash-escaped dollar with braces (`\${VAR:-default}`).
@@ -455,6 +455,8 @@ Prefer `argument="--flag"` over bare `name="flag"`. This ties the param to the C
 
 When using `argument=`, the param `name` is derived automatically (e.g., `argument="--min-score"` creates `name="min_score"`). You can still use the param as `$min_score` in the command block, but you don't need to repeat `--min-score` there — Galaxy handles it.
 
+**IUC standard attribute order:** `name, argument, type, format, min|truevalue, max|falsevalue, value|checked, optional, label, help`.
+
 ### Grouping with `<section>`
 
 Group related parameters into logical sections for complex tools:
@@ -497,15 +499,6 @@ Use `<validator>` for constraining values. Use `min`/`max` attributes on integer
        label="Maximum items" help="Start small to verify results"/>
 ```
 
-### Parameter Attribute Ordering
-
-The IUC standard ordering for `<param>` attributes:
-
-```
-name, argument, type, format, min|truevalue, max|falsevalue,
-value|checked, optional, label, help
-```
-
 ### Boolean Parameters
 
 Put the CLI flag in `truevalue`/`falsevalue`. Don't use booleans as conditionals — use `select` instead when other params depend on the choice.
@@ -521,24 +514,33 @@ Put the CLI flag in `truevalue`/`falsevalue`. Don't use booleans as conditionals
 
 ### Compressed Datatype Support
 
-If Galaxy supports a compressed version of a format, accept both:
+When the underlying tool accepts compressed input natively (or you add decompression in the command section), accept both compressed and uncompressed formats:
 
 ```xml
 <param name="input" type="data" format="fasta,fasta.gz" label="Input sequences"/>
 <param name="reads" type="data" format="fastqsanger,fastqsanger.gz,fastqsanger.bz2" label="Reads"/>
 ```
 
-### Repeat Parameters
+If you accept compressed formats, include tests with both compressed and uncompressed inputs to verify both paths work.
 
-For variable-length lists of inputs:
+### Multiple Inputs vs Repeat Parameters
+
+For multiple files of the same type, use `multiple="true"` on the data param:
 
 ```xml
-<repeat name="inputs" title="Input datasets">
+<param name="inputs" type="data" format="bam" multiple="true" label="BAM files"/>
+```
+
+Use `<repeat>` for variable-length groups of mixed parameters (e.g., a dataset + options per entry):
+
+```xml
+<repeat name="samples" title="Sample">
     <param name="input" type="data" format="bam" label="BAM file"/>
+    <param name="label" type="text" label="Sample label"/>
 </repeat>
 ```
 
-In command: `#for $i in $inputs# '$i.input' #end for#`
+In command: `#for $s in $samples# --sample '$s.input' --label '$s.label' #end for#`
 
 ### Data Collections
 
@@ -569,8 +571,10 @@ Tools with subcommands (e.g., `samtools view`, `samtools sort`) should be separa
 
 ### IUC-Specific Rules
 
+See [IUC Best Practices](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices.html) for the canonical standards.
+
 - **No `display="checkboxes"`** on multi-select params. Reviewers will flag it. Let Galaxy decide the widget.
-- **Use `selected="true"`** on default options, not `default="value"`.
+- **Mark defaults with `selected="true"`** on the `<option>` element.
 - **Unit notation in labels:** Use SI-style lowercase: "kb" not "KB", "Mb" not "MB". The option values can use uppercase (e.g., `value="1MB"`) but display text should read "1 Mb".
 - **Help text:** Keep it actionable and short. "Start small to verify results" is good.
 - **Citations:** Prefer `type="doi"` over `type="bibtex"` when a DOI is available. Search the upstream repo/paper for the correct DOI.
@@ -595,6 +599,16 @@ Key rules for Galaxy wrapper scripts:
 - **`__version__`** must match `@TOOL_VERSION@` in macros.xml
 - **Per-item error handling** — `try/except` inside the loop, continue on failure, exit 1 only if ALL items failed
 - **No user-facing `--verbose`** — control via Galaxy's logging, not user params
+- **Declare auxiliary scripts** in the tool XML with [`<required_files>`](https://docs.galaxyproject.org/en/latest/dev/schema.html#tool-required-files-include) so Galaxy includes them at runtime:
+  ```xml
+  <required_files>
+      <include path="mytool_convert.py"/>
+  </required_files>
+  ```
+- **Add a python requirement** when using wrapper scripts:
+  ```xml
+  <requirement type="package">python</requirement>
+  ```
 
 ```python
 #!/usr/bin/env python
@@ -679,6 +693,8 @@ If the upstream CLI has no hard memory limit, surface the parameter that proxies
 
 ## 8. Test Infrastructure
 
+See `references/testing.md` for the full assertion reference, collection testing, compressed output testing, repeat element tests, and failure analysis. Also see the [Galaxy Tool XSD Schema](https://docs.galaxyproject.org/en/latest/dev/schema.html) for the complete assertion specification.
+
 ### Test XML Structure
 
 ```xml
@@ -713,10 +729,7 @@ If the upstream CLI has no hard memory limit, surface the parameter that proxies
 
 ### Assert Patterns
 
-Use `<assert_contents>` with `<has_text>` for key content verification. Check:
-- Header line or column names
-- Known output values
-- Identifiers from the input data
+Use `<assert_contents>` with `<has_text>` for key content verification. Check header lines, known output values, and identifiers from the input data:
 
 ```xml
 <output name="output_tsv">
@@ -728,117 +741,7 @@ Use `<assert_contents>` with `<has_text>` for key content verification. Check:
 </output>
 ```
 
-### Assertion Type Reference
-
-Galaxy provides a rich set of assertions for `<assert_contents>`:
-
-```xml
-<assert_contents>
-    <!-- Text content -->
-    <has_text text="must contain this"/>
-    <has_text text="must not contain" negate="true"/>
-    <has_line line="exact line match"/>
-    <has_line_matching expression="regex.*pattern"/>
-
-    <!-- Structure -->
-    <has_n_lines n="10"/>
-    <has_n_lines min="5" max="20"/>
-    <has_n_columns n="4"/>
-    <has_n_columns n="4" sep="\t"/>
-
-    <!-- Size -->
-    <has_size value="1000" delta="100"/>
-    <has_size min="500"/>
-</assert_contents>
-```
-
-### File Comparison Modes
-
-```xml
-<!-- Exact match (default) -->
-<output name="output" file="expected.txt"/>
-
-<!-- Partial match — output must contain the expected file's content -->
-<output name="output" file="expected_subset.txt" compare="contains"/>
-
-<!-- Allow N lines to differ (timestamps, floats) -->
-<output name="output" file="expected.txt" lines_diff="2"/>
-
-<!-- Size-based comparison for binary files -->
-<output name="output" file="expected.bam" ftype="bam" compare="sim_size" delta="100"/>
-```
-
-### Additional Test Assertions
-
-Beyond `<assert_contents>`, Galaxy supports assertions on command exit and stream output:
-
-```xml
-<!-- Assert on stderr content (useful for checking warnings) -->
-<assert_stderr>
-    <has_text text="WARNING: low coverage"/>
-</assert_stderr>
-
-<!-- Assert on stdout content -->
-<assert_stdout>
-    <has_text text="Processing complete"/>
-</assert_stdout>
-
-<!-- Assert on the constructed command line -->
-<assert_command>
-    <has_text text="--expected-flag"/>
-</assert_command>
-```
-
-### Collection Output Testing
-
-Test output collections with `<output_collection>`:
-
-```xml
-<test expect_num_outputs="1">
-    <param name="input" value="test_input.fa"/>
-    <output_collection name="results" type="list" count="5">
-        <element name="file1">
-            <assert_contents>
-                <has_text text="expected"/>
-            </assert_contents>
-        </element>
-    </output_collection>
-</test>
-```
-
-Use `min` instead of exact `count` when upstream data may vary:
-
-```xml
-<!-- Fragile: exact count breaks when upstream data changes -->
-<output_collection type="list" count="12">
-
-<!-- Robust: minimum count -->
-<output_collection type="list" min="10">
-```
-
-### Testing Compressed Outputs
-
-Use `decompress="true"` to test content inside compressed files:
-
-```xml
-<element name="output" ftype="fastq.gz">
-    <assert_contents>
-        <has_text text="expected" decompress="true"/>
-    </assert_contents>
-</element>
-```
-
-### Conditional and Section Tests
-
-Test conditionals by specifying nested param values:
-
-```xml
-<conditional name="output_mode">
-    <param name="mode" value="summary"/>
-</conditional>
-```
-
-**Avoid pipe syntax** for nested inputs in tests. Use explicit nesting, not `section|input`:
+Test conditionals and sections with explicit nesting (not pipe syntax):
 
 ```xml
 <!-- BAD: pipe syntax -->
@@ -850,22 +753,24 @@ Test conditionals by specifying nested param values:
 </section>
 ```
 
-### Repeat Element Tests
+### Common Test Mistakes
 
 ```xml
+<!-- BAD: golden file for non-deterministic output -->
+<output name="result" file="expected.tsv"/>
+<!-- GOOD: use lines_diff or assert_contents -->
+<output name="result" file="expected.tsv" lines_diff="2"/>
+
+<!-- BAD: only checking file count, no content verification -->
 <test expect_num_outputs="1">
-    <section name="filters">
-        <repeat name="filter_list">
-            <param name="filter_value" value="value1"/>
-        </repeat>
-        <repeat name="filter_list">
-            <param name="filter_value" value="value2"/>
-        </repeat>
-    </section>
-    <output name="output">
+    <param name="input" value="test.fa"/>
+</test>
+<!-- GOOD: always verify content -->
+<test expect_num_outputs="1">
+    <param name="input" value="test.fa"/>
+    <output name="result">
         <assert_contents>
-            <has_text text="value1"/>
-            <has_text text="value2"/>
+            <has_text text="expected_header"/>
         </assert_contents>
     </output>
 </test>
@@ -895,76 +800,6 @@ The standard approach for CLI-wrapping tools. Regenerate expected output files d
 # Run the test, then copy the actual output to test-data/
 planemo test --biocontainers tools/mytool/mytool_align.xml
 cp /path/to/galaxy_output__*.bam tools/mytool/test-data/expected_output.bam
-```
-
-### Docker Inspection
-
-To check available parameters for a new tool or version, run the upstream container directly:
-
-```bash
-docker run quay.io/biocontainers/<package>:<version> <command> --help
-```
-
-### Analyzing Test Failures
-
-After running `planemo test`, check `tool_test_output.json` for details:
-
-```python
-import json
-
-with open("tool_test_output.json") as f:
-    data = json.load(f)
-
-print(f"Summary: {data.get('summary', {})}")
-
-for t in data.get("tests", []):
-    status = t.get("data", {}).get("status")
-    if status != "success":
-        print(f"\n=== {t.get('id')} ===")
-        print(f"Status: {status}")
-        print(f"Problems: {t.get('data', {}).get('output_problems', [])}")
-        job = t.get("data", {}).get("job", {})
-        if job.get("stderr"):
-            print(f"stderr (last 500 chars): {job['stderr'][-500:]}")
-        if job.get("stdout"):
-            print(f"stdout (last 500 chars): {job['stdout'][-500:]}")
-```
-
-Tests are 0-indexed: test 0 = first `<test>` in the XML. When `tool_test_output.json` reports `test-5`, that's the 6th test.
-
-### Common Test Mistakes
-
-```xml
-<!-- BAD: golden file for non-deterministic output (timestamps, floats) -->
-<output name="result" file="expected.tsv"/>
-
-<!-- GOOD: use lines_diff or assert_contents -->
-<output name="result" file="expected.tsv" lines_diff="2"/>
-```
-
-```xml
-<!-- BAD: only checking file count, no content verification -->
-<test expect_num_outputs="1">
-    <param name="input" value="test.fa"/>
-</test>
-
-<!-- GOOD: always verify content -->
-<test expect_num_outputs="1">
-    <param name="input" value="test.fa"/>
-    <output name="result">
-        <assert_contents>
-            <has_text text="expected_header"/>
-        </assert_contents>
-    </output>
-</test>
-```
-
-```xml
-<!-- BAD: exact count for variable upstream data -->
-<has_n_lines n="142"/>
-
-<!-- GOOD: flexible minimum -->
-<has_n_lines min="140"/>
 ```
 
 ### Fixture-Based Testing (API Tools Only)
