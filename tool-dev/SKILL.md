@@ -443,10 +443,10 @@ In the command block:
 
 ### The `argument=` Attribute
 
-Prefer `argument="--flag"` over bare `name="flag"`. This ties the param to the CLI flag automatically and prevents flag duplication in the command block. Always use the long form (`--output` not `-o`).
+Prefer `argument="--flag"` over bare `name="flag"`. This auto-generates the `name` attribute (stripping leading dashes, replacing `-` with `_`) and displays the flag in the help text. Always use the long form (`--output` not `-o`).
 
 ```xml
-<!-- GOOD: argument auto-generates the flag in the command -->
+<!-- GOOD: argument auto-generates name="min_score" and shows --min-score in help -->
 <param argument="--min-score" type="float" value="0.5" min="0.0" max="1.0"
        label="Minimum score" help="Filter results below this threshold"/>
 
@@ -454,7 +454,11 @@ Prefer `argument="--flag"` over bare `name="flag"`. This ties the param to the C
 <param name="organism" type="select" label="Organism">
 ```
 
-When using `argument=`, the param `name` is derived automatically (e.g., `argument="--min-score"` creates `name="min_score"`). You can still use the param as `$min_score` in the command block, but you don't need to repeat `--min-score` there — Galaxy handles it.
+When using `argument=`, the param `name` is derived automatically (e.g., `argument="--min-score"` creates `name="min_score"`). You still need to include the flag in the command block — `argument=` does not inject it for you:
+
+```
+--min-score $min_score
+```
 
 **IUC standard attribute order:** `name, argument, type, format, min|truevalue, max|falsevalue, value|checked, optional, label, help`.
 
@@ -837,7 +841,7 @@ suite:
 | `optional="true"` with a default | "Just use the default, remove optional" | Remove `optional`, set `value` |
 | stdout used for logging | "Use stderr for logging" | `logging.StreamHandler(sys.stderr)` |
 | Missing `argument=` on params | "Use argument= instead of bare name=" | `<param argument="--flag" .../>` |
-| Bare `name=` duplicating flag in command | "argument= handles this automatically" | Remove flag from command block, add `argument=` |
+| Bare `name=` duplicating `argument=` | "argument= auto-generates the name" | Remove redundant `name=`, keep `argument=` (flag still needed in command) |
 | Param not used in command | "Orphaned parameter" | Remove param or wire it into command |
 | Test data over 1 MB | "Test data must be under 1 MB" | Use smaller inputs or assert_contents instead of golden files |
 | Boolean used as conditional | "Use select + conditional" | Replace boolean with select param when other params depend on choice |
