@@ -15,7 +15,7 @@ For the full tool development guide, see `../SKILL.md`. For the complete asserti
 planemo test --biocontainers tools/{tool_name}/
 
 # Without containers (API tools with fixtures)
-planemo test tools/{tool_name}/ --no_dependency_resolution --galaxy_python_version 3.12
+planemo test tools/{tool_name}/
 ```
 
 ### Specific Test

@@ -73,7 +73,7 @@ Galaxy XML elements must appear in this order. `planemo lint` enforces this.
 
     <version_command>echo @TOOL_VERSION@</version_command>
 
-    <command detect_errors="exit_code"><![CDATA[
+    <command detect_errors="aggressive"><![CDATA[
         ...
     ]]></command>
 
@@ -123,10 +123,10 @@ Link to the upstream tool's bio.tools entry with `<xrefs>`. Create the bio.tools
 
 ### Command Block
 
-Use `detect_errors="exit_code"` (or `"aggressive"` to also catch "error:"/"exception:" on stderr) and CDATA wrapping. Chain multiple commands with `&&` for proper error propagation. Most tools call the upstream binary directly:
+Use `detect_errors="aggressive"` (catches non-zero exit codes and "error:"/"exception:" on stderr) and CDATA wrapping. Chain multiple commands with `&&` for proper error propagation. Most tools call the upstream binary directly:
 
 ```xml
-<command detect_errors="exit_code"><![CDATA[
+<command detect_errors="aggressive"><![CDATA[
     mytool align
         --input '$input_fastq'
         --reference '$reference'
@@ -142,7 +142,7 @@ Use `detect_errors="exit_code"` (or `"aggressive"` to also catch "error:"/"excep
 For multi-step commands, chain with `&&`:
 
 ```xml
-<command detect_errors="exit_code"><![CDATA[
+<command detect_errors="aggressive"><![CDATA[
     ln -s '$input_fasta' input.fa &&
     mytool index input.fa &&
     mytool align input.fa --output '$output_bam'
@@ -152,7 +152,7 @@ For multi-step commands, chain with `&&`:
 When the CLI can't produce the output Galaxy needs (format conversion, multi-step pipelines), use a Python wrapper script:
 
 ```xml
-<command detect_errors="exit_code"><![CDATA[
+<command detect_errors="aggressive"><![CDATA[
     python '$__tool_directory__/mytool_convert.py'
         --input '$input_file'
         --output '$output_file'
@@ -168,7 +168,7 @@ When the CLI can't produce the output Galaxy needs (format conversion, multi-ste
 When a CLI tool writes to a fixed filename or prefix, use a staging directory so Galaxy can find the output predictably:
 
 ```xml
-<command detect_errors="exit_code"><![CDATA[
+<command detect_errors="aggressive"><![CDATA[
     mkdir -p staging &&
     mytool --output-prefix staging/result '$input_file' &&
     mv staging/result.tsv '$output_file'
@@ -773,7 +773,7 @@ For the uncommon case of tools calling external APIs: record real responses as J
 
 ```bash
 # Fixture-based tests (no container needed, no API key)
-planemo test tools/mytool/ --no_dependency_resolution --galaxy_python_version 3.12
+planemo test tools/mytool/
 ```
 
 ---
@@ -993,8 +993,7 @@ Follow element order from Section 2:
 ### Step 5: Create Test Data and Golden Files
 
 - Create minimal input files that exercise the tool
-- Run via `planemo test --biocontainers` to generate outputs
-- Copy actual outputs to `test-data/` as golden files
+- Run `planemo test --biocontainers --update_test_data` to generate expected output files in place
 
 ### Step 6: Write .shed.yml
 
