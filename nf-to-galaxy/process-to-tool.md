@@ -12,7 +12,7 @@ Detailed guide for converting a single Nextflow process to a Galaxy tool XML.
 2. Check if Galaxy tool already exists (tools-iuc, GenOuest, ToolShed)
 3. If creating new tool, determine where it should live:
    - See `tool-sources.md` for conversion context
-   - See `../../tool-dev/creation/tool-placement.md` for generic tool placement guidance
+   - See `../../tool-dev/references/tool-placement.md` for generic tool placement guidance
 4. Present plan to user
 5. Wait for approval
 6. Implement

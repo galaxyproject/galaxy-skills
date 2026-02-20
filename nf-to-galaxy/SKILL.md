@@ -92,7 +92,7 @@ For complete pipelines, you are expected to include **bioinformatics best-practi
 - **`../../galaxy-integration/galaxy-integration.md`** - Galaxy MCP/BioBlend: setup, tool checking, workflow testing
 - **`check-tool-availability.md`** - Manual tool checking across repositories
 - **`testing-and-validation.md`** - Routing page to canonical testing docs
-- **`../../tool-dev/shared/testing.md`** - Tool testing with Planemo
+- **`../../tool-dev/references/testing.md`** - Tool testing with Planemo
 
 ### Tool Discovery Order (Installed vs Available vs Missing)
 

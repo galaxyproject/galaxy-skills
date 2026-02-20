@@ -57,7 +57,7 @@ After creating or updating a Galaxy tool, use these examples to:
 1. Verify tool is available on target instance
 2. Test tool in a workflow context
 
-**See also**: `../../tool-dev/updates/` and `../../tool-dev/creation/`
+**See also**: `../../tool-dev/SKILL.md`
 
 ### General Workflow Testing
 
@@ -102,7 +102,7 @@ Automated Galaxy tool checker and workflow validator.
 - **MCP setup**: `../galaxy-integration.md#setup`
 - **BioBlend script**: `../scripts/README.md` - galaxy_tool_checker.py usage
 - **Conversion examples**: `../../nf-to-galaxy/examples/` - Conversion-specific scenarios
-- **Testing guide**: `../../tool-dev/shared/testing.md` - Planemo tool testing
+- **Testing guide**: `../../tool-dev/references/testing.md` - Planemo tool testing
 
 ---
 

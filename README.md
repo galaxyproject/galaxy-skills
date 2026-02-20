@@ -82,10 +82,8 @@ The LLM can read skill files directly from the workspace.
 
 Create and update Galaxy tool wrappers.
 
-- **creation/** - Create new tool wrappers from scratch or Nextflow
-- **updates/** - Update existing tools to new versions
-- **shared/** - XML structure, testing, help formatting
-- Router SKILL.md directs to appropriate sub-skill
+- Comprehensive SKILL.md covering tool creation, testing, IUC review, and updates
+- **references/** - Standalone testing and tool placement guides (also used by other skills)
 
 ### Content
 
@@ -142,10 +140,8 @@ skills/
 ├── AGENTS.md                    # Agent routing instructions
 │
 ├── tool-dev/                    # ✅ Galaxy tool development
-│   ├── SKILL.md                # Router to creation/ or updates/
-│   ├── creation/               # Create new tools
-│   ├── updates/                # Update existing tools
-│   └── shared/                 # XML, testing, help references
+│   ├── SKILL.md                # Comprehensive tool dev reference
+│   └── references/             # Testing, tool placement guides
 │
 ├── hub-news-posts/              # ✅ Galaxy Hub posts
 │

@@ -551,7 +551,7 @@ jobs:
 - **Main guide**: `../galaxy-integration.md` - Complete Galaxy integration guide
 - **Tool checking**: `tool-checking.md` - Verify tool availability
 - **BioBlend script**: `../scripts/README.md` - galaxy_tool_checker.py usage
-- **Planemo testing**: `../../tool-dev/shared/testing.md` - Tool-level testing
+- **Planemo testing**: `../../tool-dev/references/testing.md` - Tool-level testing
 
 ---
 

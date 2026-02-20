@@ -33,7 +33,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 |------|---------|
 | `check-tool-availability.md` | How to find if tools exist |
 | `testing-and-validation.md` | Routing page to canonical testing docs |
-| `../../tool-dev/shared/testing.md` | Tool testing with Planemo |
+| `../../tool-dev/references/testing.md` | Tool testing with Planemo |
 | `nextflow-galaxy-terminology.md` | Concept mappings |
 | `process-to-tool.md` | Process → Tool conversion details |
 | `workflow-to-ga.md` | Workflow → .ga conversion details |

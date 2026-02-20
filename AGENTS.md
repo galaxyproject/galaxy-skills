@@ -18,8 +18,8 @@ If the user asks to convert Nextflow pipelines/modules/processes to Galaxy tools
   - `nf-to-galaxy/check-tool-availability.md`
   - `nf-to-galaxy/scripts/check_tool.sh`
   - `nf-to-galaxy/testing-and-validation.md` (routing page)
-  - `tool-dev/shared/testing.md` (Planemo tool testing)
-  - `tool-dev/creation/tool-placement.md` (where to create tools)
+  - `tool-dev/references/testing.md` (Planemo tool testing)
+  - `tool-dev/references/tool-placement.md` (where to create tools)
   - `galaxy-integration/galaxy-integration.md` (workflow testing on Galaxy instance)
   - `galaxy-integration/examples/` (tool checking and workflow testing examples)
 
@@ -64,6 +64,6 @@ All operations must use Galaxy's native tools for reproducibility and workflow c
 If the user asks about one of these tasks, use the corresponding skill:
 
 - `hub-news-posts/SKILL.md` (Galaxy Hub news posts)
-- `tool-dev/SKILL.md` (Galaxy tool development - router to creation/ or updates/)
+- `tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
 
 For general discovery of what's available, start at `README.md`.

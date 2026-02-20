@@ -46,7 +46,7 @@ cd ../
 **Present decision to user and wait for approval.**
 
 If targeting **tools-iuc**, follow the higher-level tool creation guidance in:
-- `../../tool-dev/creation/SKILL.md`
+- `../../tool-dev/SKILL.md`
 
 ### Step 3: Extract Process Information
 
@@ -108,7 +108,7 @@ These docs live in the parent directory (`../`):
 - `container-mapping.md` - Container to bioconda mapping
 - `datatype-mapping.md` - File patterns to Galaxy datatypes
 - `testing-and-validation.md` - Routing page to canonical testing docs
-- `../../tool-dev/shared/testing.md` - Tool testing with Planemo
+- `../../tool-dev/references/testing.md` - Tool testing with Planemo
 
 ---
 

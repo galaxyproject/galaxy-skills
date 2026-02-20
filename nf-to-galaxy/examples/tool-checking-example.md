@@ -215,7 +215,7 @@ After checking tool availability:
 2. **For missing tools** (custom alignment):
    - Create custom tool wrapper
    - See: `../nf-process-to-galaxy-tool/SKILL.md`
-   - Or: `../../../tool-dev/creation/`
+   - Or: `../../../tool-dev/SKILL.md`
 
 3. **Create workflow**:
    - Use verified tool IDs in `.ga` file

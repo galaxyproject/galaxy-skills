@@ -101,7 +101,7 @@ Place your skill in the appropriate category:
 
 | Skill Family | Purpose | Examples |
 |--------------|---------|----------|
-| `tool-dev/` | Galaxy tool development (creation + updates) | creation/, updates/, shared/ |
+| `tool-dev/` | Galaxy tool development (creation + updates) | references/ |
 | `hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
 | `nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
 | `galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
