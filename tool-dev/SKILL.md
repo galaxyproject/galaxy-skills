@@ -87,7 +87,7 @@ Galaxy XML elements must appear in this order. `planemo lint` enforces this.
         ...
     </tests>
 
-    <help><![CDATA[
+    <help format="markdown"><![CDATA[
         ...
     ]]></help>
 
