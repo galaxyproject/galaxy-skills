@@ -1,11 +1,11 @@
 ---
 name: tool-dev
-description: Comprehensive Galaxy tool development reference — creating new tools, testing, IUC review preparation, and updating existing tools. Use when authoring or modifying Galaxy tool wrappers for tools-iuc.
+description: Galaxy tool development reference — creating new tools, testing, IUC review preparation, and updating existing tools. Use when authoring or modifying Galaxy tool wrappers for tools-iuc.
 ---
 
-# Galaxy Tool Development — Comprehensive Reference
+# Galaxy Tool Development Reference
 
-Comprehensive reference for authoring Galaxy tool wrappers that pass tools-iuc review. Derived from real IUC review feedback (25 inline comments, 3 reviewers) on a 5-tool submission.
+Reference for authoring Galaxy tool wrappers that pass tools-iuc review. Derived from real IUC review feedback (25 inline comments, 3 reviewers) on a 5-tool submission.
 
 ## When to Use This Skill
 
@@ -45,7 +45,7 @@ tools/mytool/
     └── expected_filter.bed
 ```
 
-Most tools don't need Python scripts — the command block calls the CLI binary directly. Add `.py` wrapper scripts only when the upstream CLI can't produce the output Galaxy needs (format conversion, multi-step pipelines, etc.).
+Add `.py` wrapper scripts only when the upstream CLI can't produce the output Galaxy needs (format conversion, multi-step pipelines, etc.) — most tools don't need them.
 
 **Key rules:**
 - Tool IDs use underscores: `mytool_align`, not hyphens
@@ -87,7 +87,7 @@ Galaxy XML elements must appear in this order. `planemo lint` enforces this.
         ...
     </tests>
 
-    <help><![CDATA[
+    <help format="markdown"><![CDATA[
         ...
     ]]></help>
 
@@ -194,7 +194,7 @@ Use `<filter>` to create outputs only when certain params are set:
 </outputs>
 ```
 
-Filtered outputs still count toward `expect_num_outputs` in tests unless the filter excludes them.
+Set `expect_num_outputs` to the number of outputs actually produced by each test case. Outputs whose `<filter>` evaluates to False are not produced and should not be counted.
 
 ### Dynamic Output Discovery
 
@@ -214,7 +214,7 @@ Use `format="markdown"` for new tools (preferred over RST). Structure with bold 
 
 ## 3. macros.xml Patterns
 
-### Tokens vs XML Macros — The #1 Review Gotcha
+### Tokens vs XML Macros
 
 This is the single most common IUC review comment. Get it right from the start.
 
@@ -288,19 +288,17 @@ For complex macros, use **named yields** to inject content into specific slots:
 </expand>
 ```
 
-Use **token parameterization** on xml macros to pass values into the macro at expansion time:
+Use **token parameterization** on xml macros to pass values into the macro at expansion time. Token parameters are replaced with the value passed at expansion — use them for attribute values like labels, defaults, and formats:
 
 ```xml
 <!-- In macros.xml -->
-<xml name="format_param" tokens="default_format">
-    <param name="output_format" type="select" label="Output format">
-        <option value="tsv" selected="@DEFAULT_FORMAT@">TSV</option>
-        <option value="csv">CSV</option>
-    </param>
+<xml name="score_param" tokens="default_score,score_help">
+    <param argument="--min-score" type="float" value="@DEFAULT_SCORE@" min="0.0" max="1.0"
+           label="Minimum score" help="@SCORE_HELP@"/>
 </xml>
 
-<!-- In tool XML -->
-<expand macro="format_param" default_format="tsv"/>
+<!-- In tool XML — each tool can set its own default and help text -->
+<expand macro="score_param" default_score="0.5" score_help="Filter results below this threshold"/>
 ```
 
 ### API Tool Macros
@@ -443,10 +441,10 @@ In the command block:
 
 ### The `argument=` Attribute
 
-Prefer `argument="--flag"` over bare `name="flag"`. This ties the param to the CLI flag automatically and prevents flag duplication in the command block. Always use the long form (`--output` not `-o`).
+Prefer `argument="--flag"` over bare `name="flag"`. This auto-generates the `name` attribute (stripping leading dashes, replacing `-` with `_`) and displays the flag in the help text. Always use the long form (`--output` not `-o`).
 
 ```xml
-<!-- GOOD: argument auto-generates the flag in the command -->
+<!-- GOOD: argument auto-generates name="min_score" and shows --min-score in help -->
 <param argument="--min-score" type="float" value="0.5" min="0.0" max="1.0"
        label="Minimum score" help="Filter results below this threshold"/>
 
@@ -454,7 +452,11 @@ Prefer `argument="--flag"` over bare `name="flag"`. This ties the param to the C
 <param name="organism" type="select" label="Organism">
 ```
 
-When using `argument=`, the param `name` is derived automatically (e.g., `argument="--min-score"` creates `name="min_score"`). You can still use the param as `$min_score` in the command block, but you don't need to repeat `--min-score` there — Galaxy handles it.
+When using `argument=`, the param `name` is derived automatically (e.g., `argument="--min-score"` creates `name="min_score"`). You still need to include the flag in the command block — `argument=` does not inject it for you:
+
+```
+--min-score $min_score
+```
 
 **IUC standard attribute order:** `name, argument, type, format, min|truevalue, max|falsevalue, value|checked, optional, label, help`.
 
@@ -585,7 +587,7 @@ See [IUC Best Practices](https://galaxy-iuc-standards.readthedocs.io/en/latest/b
 
 ## 6. Python Wrapper Scripts (When Needed)
 
-Most Galaxy tools don't need a Python script — the command block calls the CLI binary directly. Add a wrapper script only when:
+Add a wrapper script only when:
 
 - The CLI output format doesn't match what Galaxy expects (needs conversion)
 - You need multi-step pipelines that are too complex for shell in the command block
@@ -647,9 +649,6 @@ if __name__ == "__main__":
 For tools wrapping external APIs (not the common case), the script also handles:
 - **Fixture bypass** — `--test-fixture` loads JSON instead of calling the API
 - **Credentials** — read API key from environment (`os.environ.get("MYTOOL_API_KEY")`)
-- **`create_model()` factory** — supports both API and local model variants
-
-See the AlphaGenome tools for a complete API-wrapping example.
 
 ---
 
@@ -722,8 +721,7 @@ See `references/testing.md` for the full assertion reference, collection testing
 
 - Give each test a **unique purpose** (e.g., "defaults", "compression on", "filtering active")
 - Point expected files to unique golden files — no duplicate outputs for different logic paths
-- Always include `expect_num_outputs` to verify file counts
-- Filtered outputs count toward `expect_num_outputs` unless the filter excludes them entirely
+- Always include `expect_num_outputs` — count only outputs actually produced (filters that evaluate to False don't produce output)
 - **Test data under 1 MB.** Use assertions (`<has_text>`, `<has_size>`) instead of golden files for larger outputs.
 - Include tests for output filters to verify filtering actually occurs
 - Include tests for error conditions with expected failure
@@ -758,7 +756,7 @@ Test conditionals and sections with explicit nesting (not pipe syntax):
 
 ### Running Tests
 
-Run `planemo lint` after every change, then `planemo test --biocontainers` to execute tests. See **Reference: Useful Planemo Commands** at the end of this document for the full command set.
+Run `planemo test --biocontainers` to execute tests. See **Reference: Useful Planemo Commands** at the end of this document for the full command set.
 
 ### Generating Expected Output Files
 
@@ -837,7 +835,7 @@ suite:
 | `optional="true"` with a default | "Just use the default, remove optional" | Remove `optional`, set `value` |
 | stdout used for logging | "Use stderr for logging" | `logging.StreamHandler(sys.stderr)` |
 | Missing `argument=` on params | "Use argument= instead of bare name=" | `<param argument="--flag" .../>` |
-| Bare `name=` duplicating flag in command | "argument= handles this automatically" | Remove flag from command block, add `argument=` |
+| Bare `name=` duplicating `argument=` | "argument= auto-generates the name" | Remove redundant `name=`, keep `argument=` (flag still needed in command) |
 | Param not used in command | "Orphaned parameter" | Remove param or wire it into command |
 | Test data over 1 MB | "Test data must be under 1 MB" | Use smaller inputs or assert_contents instead of golden files |
 | Boolean used as conditional | "Use select + conditional" | Replace boolean with select param when other params depend on choice |
@@ -903,7 +901,7 @@ docker run quay.io/biocontainers/<package>:<new_version> <command> --help
 
 ### Common Update Bugs
 
-**Repeat element access** — the #1 bug found during updates:
+**Repeat element access** — the most common bug found during updates:
 
 ```cheetah
 ## WRONG: accesses outer scope, not loop variable
@@ -975,7 +973,7 @@ touch tools/mytool/.shed.yml
 
 ### Step 3: Write macros.xml
 
-Start with version tokens, requirements (from bioconda/conda-forge), shared params, and citations. Use the template in Section 3.
+Start with version tokens, requirements (from bioconda/conda-forge), shared params, and citations. Use the macros.xml template from the macros.xml Patterns section above.
 
 ### Step 4: Write the Tool XML
 
