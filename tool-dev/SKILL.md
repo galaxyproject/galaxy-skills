@@ -210,6 +210,8 @@ For tools producing variable numbers of output files, use `discover_datasets`:
 
 Use `format="markdown"` for new tools (preferred over RST). Structure with bold `**headers**`, horizontal rules `-----` between sections, double backticks for code references, and end with a citation block. Keep it concise and actionable.
 
+**Lint caveat:** Even with `format="markdown"`, `planemo lint` still validates help content as RST. RST grid tables with alignment issues will fail the `HelpValidRST` check. Use simple bullet lists or definition lists instead of complex tables in help sections.
+
 ---
 
 ## 3. macros.xml Patterns
@@ -269,6 +271,41 @@ This is the single most common IUC review comment. Get it right from the start.
 ```
 
 ### Named Yields and Token Parameterization
+
+#### Unnamed `<yield/>`
+
+Use `<yield/>` (without a name) for simple extensibility. Content placed inside the `<expand>` tag replaces every `<yield/>` in the macro:
+
+```xml
+<!-- In macros.xml -->
+<xml name="dbtype_conditional">
+    <conditional name="alph_type">
+        <param argument="--dbtype" type="select" label="Input data type">
+            <option value="0" selected="true">Automatic</option>
+            <option value="1">Amino acid</option>
+            <option value="2">Nucleotides</option>
+        </param>
+        <when value="0"/>
+        <when value="1">
+            <param argument="--comp-bias-corr-scale" type="float" value="1" label="Scale composition bias correction"/>
+            <yield/>
+        </when>
+        <when value="2">
+            <param argument="--zdrop" type="integer" value="40" label="Max z-drop"/>
+            <yield/>
+        </when>
+    </conditional>
+</xml>
+
+<!-- In tool XML — yield content appears in BOTH <when> blocks -->
+<expand macro="dbtype_conditional">
+    <param argument="--kmer-per-seq-scale" type="float" value="0.000" label="Scale k-mer per sequence"/>
+</expand>
+```
+
+**Important:** When `<yield/>` appears inside multiple `<when>` blocks, the yielded content is inserted into **all** of them. Design macros accordingly.
+
+#### Named Yields
 
 For complex macros, use **named yields** to inject content into specific slots:
 
@@ -401,6 +438,20 @@ Integer and float params: `0` is a valid value but falsy in Cheetah/Python. Use 
 #end if
 ```
 
+### Multi-Select `optional="true"` Returns `None`
+
+When a multi-select param has `optional="true"` and the user makes no selection, the Cheetah value is Python `None` — which renders as the literal string `'None'`. Always check truthiness before joining:
+
+```
+## BAD: produces --format-output 'None' when nothing is selected
+--format-output '${ ",".join(str($format_fields).split(",")) }'
+
+## GOOD: check truthiness first
+#if $format_fields
+    --format-output '${ ",".join($format_fields) }'
+#end if
+```
+
 ### For Loops (Multi-Select Parameters)
 
 ```
@@ -523,6 +574,8 @@ When the underlying tool accepts compressed input natively (or you add decompres
 <param name="input" type="data" format="fasta,fasta.gz" label="Input sequences"/>
 <param name="reads" type="data" format="fastqsanger,fastqsanger.gz,fastqsanger.bz2" label="Reads"/>
 ```
+
+**FASTQ format naming:** Always use `fastqsanger` or `fastqillumina` instead of generic `fastq`. Galaxy distinguishes FASTQ quality encoding variants and reviewers will flag the generic name. For tools accepting any FASTQ encoding, list both: `format="fastqsanger,fastqsanger.gz,fastqillumina,fastqillumina.gz"`.
 
 If you accept compressed formats, include tests with both compressed and uncompressed inputs to verify both paths work.
 
@@ -688,6 +741,22 @@ If the upstream CLI has no hard memory limit, surface the parameter that proxies
 <!-- BAD: raw memory flag, meaningless to most users -->
 <param argument="--memory" type="integer" value="4" label="Memory (GB)"/>
 ```
+
+### Out-of-Memory Detection
+
+For memory-intensive tools (assemblers, search tools, indexers), add OOM detection via `<stdio>` regex. This gives Galaxy proper error categorization instead of a generic failure. Note: `<stdio>` is only needed for the `fatal_oom` level (enables automatic resubmission to larger runners). For general error detection, `detect_errors="aggressive"` on the `<command>` element is sufficient and preferred — you don't need both `<stdio>` regexes and `detect_errors="aggressive"` for catching ordinary errors.
+
+```xml
+<xml name="stdio">
+    <stdio>
+        <regex match="Failed to allocate" source="stderr" level="fatal_oom"/>
+        <regex match="std::bad_alloc" source="stderr" level="fatal_oom"/>
+        <regex match="Cannot allocate memory" source="stderr" level="fatal_oom"/>
+    </stdio>
+</xml>
+```
+
+Tools like Diamond and Velvet use this pattern. The `fatal_oom` level tells Galaxy the job failed due to memory exhaustion, which enables automatic resubmission to a larger runner if configured by the admin.
 
 ---
 
