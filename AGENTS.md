@@ -59,6 +59,16 @@ If the user asks to transform, filter, sort, relabel, restructure, flatten, nest
 
 All operations must use Galaxy's native tools for reproducibility and workflow compatibility.
 
+## Update UseGalaxy Tools
+
+If the user asks to add or update a ToolShed tool revision in the usegalaxy-tools repo:
+
+- Skill:
+  - `update-usegalaxy-tool/SKILL.md` (single self-contained command)
+
+- References:
+  - `update-usegalaxy-tool/references/file-formats.md` (usegalaxy-tools YAML file formats, ToolShed API, lint script)
+
 ## Other skills in this repo
 
 If the user asks about one of these tasks, use the corresponding skill:
