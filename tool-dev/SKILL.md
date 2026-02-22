@@ -159,6 +159,31 @@ When the CLI can't produce the output Galaxy needs (format conversion, multi-ste
 
 **Parameter parity rule:** Every param in `<inputs>` must appear in `<command>`, and every flag in `<command>` must trace back to an `<inputs>` param or a macro token. Orphaned params are a lint warning and a review flag.
 
+### Galaxy `.dat` Extension and Format Auto-Detection
+
+Galaxy stores datasets internally with a `.dat` extension (e.g., `dataset_d562...7f33.dat`). Tools that auto-detect input format from the file extension (like MMseqs2) will fail because `.dat` is not a recognized bioinformatics format. The fix is to create symlinks with the correct extension derived from Galaxy's datatype:
+
+```xml
+<command detect_errors="aggressive"><![CDATA[
+#set $query_ext = str($query_fasta.ext).replace('sanger', '').replace('illumina', '')
+ln -s '$query_fasta' 'query.${query_ext}' &&
+
+mytool search 'query.${query_ext}' ...
+]]></command>
+```
+
+The `str($var.ext).replace('sanger', '').replace('illumina', '')` pattern maps Galaxy datatypes to standard file extensions:
+
+| Galaxy datatype | `$var.ext` | After replace | Symlink |
+|----------------|-----------|---------------|---------|
+| fasta | `fasta` | `fasta` | `query.fasta` |
+| fasta.gz | `fasta.gz` | `fasta.gz` | `query.fasta.gz` |
+| fastqsanger | `fastqsanger` | `fastq` | `query.fastq` |
+| fastqsanger.gz | `fastqsanger.gz` | `fastq.gz` | `query.fastq.gz` |
+| fastqillumina | `fastqillumina` | `fastq` | `query.fastq` |
+
+This is especially common for tools that accept both FASTA and FASTQ, both compressed and uncompressed. Always symlink with the dynamic extension — hardcoding `.fasta` breaks when users provide gzipped or FASTQ inputs.
+
 **Index generation:** When a tool needs to index input files, create symlinks to the inputs in the working directory — don't try to write indices next to the (read-only) input files.
 
 ### Output Paths and `from_work_dir`
@@ -826,6 +851,13 @@ Test conditionals and sections with explicit nesting (not pipe syntax):
 ### Running Tests
 
 Run `planemo test --biocontainers` to execute tests. See **Reference: Useful Planemo Commands** at the end of this document for the full command set.
+
+**Fallback when Docker is unavailable:** If `--biocontainers` fails with exit code 127 (Docker not found), install the tool via conda and run without dependency resolution:
+
+```bash
+conda create -p /path/to/env -c conda-forge -c bioconda <tool>=<version>
+PATH="/path/to/env/bin:$PATH" planemo test --no_conda_auto_init --no_dependency_resolution tools/mytool/
+```
 
 ### Generating Expected Output Files
 
