@@ -25,6 +25,7 @@ Reference for authoring Galaxy tool wrappers that pass tools-iuc review. Derived
 - [Planemo Documentation](https://planemo.readthedocs.io/) — lint, test, serve, shed workflows
 - `references/testing.md` — standalone planemo testing reference (also used by other skills)
 - `references/tool-placement.md` — where to create tools decision guide
+- `tool-selection-diagram/SKILL.md` — generate tool selection flowchart diagrams for multi-tool suites
 
 ---
 
@@ -38,6 +39,9 @@ tools/mytool/
 ├── mytool_align.xml              # Tool wrapper A
 ├── mytool_filter.xml             # Tool wrapper B
 ├── .shed.yml                     # Tool Shed metadata
+├── static/
+│   └── images/
+│       └── mytool_tool_selection.png   # Optional: tool selection diagram
 └── test-data/
     ├── input.fastq.gz            # Shared test inputs
     ├── reference.fasta

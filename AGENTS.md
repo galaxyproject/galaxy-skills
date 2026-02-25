@@ -75,5 +75,6 @@ If the user asks about one of these tasks, use the corresponding skill:
 
 - `hub-news-posts/SKILL.md` (Galaxy Hub news posts)
 - `tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
+  - `tool-dev/tool-selection-diagram/SKILL.md` (generate tool selection flowchart diagrams)
 
 For general discovery of what's available, start at `README.md`.
