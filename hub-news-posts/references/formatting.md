@@ -11,9 +11,14 @@ Detailed formatting reference for Galaxy Hub news posts.
 title: "Galaxy 25.1 Released"          # Post title
 date: "2025-12-17"                      # Publication date (YYYY-MM-DD)
 tease: "New features include..."        # Short description (~100 chars)
-authors: "Galaxy Team"                  # Author name(s)
-tags: [release, galaxy]                 # Categorization tags
+tags: [release, galaxy]                 # Categorization tags (must exist in TAGS.yaml)
 subsites: [all]                         # Where to show: all, eu, freiburg, global
+contributions:
+  authorship:
+    - nekrut                            # Contributor IDs (not free-text names)
+    - bebatut
+  funding:
+    - deNBI                             # Optional funding org IDs
 ---
 ```
 
@@ -29,6 +34,8 @@ autotoc: true                           # Auto-generate table of contents
 ```
 
 ### Common Tags
+
+**All tags must exist in `content/TAGS.yaml`**. CI validation will reject unknown tags. Tags are case-sensitive — check the file before using any tag.
 
 - `release` - Galaxy version releases
 - `training` - Training events and materials
@@ -264,5 +271,5 @@ content/news/2025-01-15-event-report/
 - [ ] Large images resized (< 500KB recommended)
 - [ ] Vega charts use gist URLs, not local files
 - [ ] Links work (internal and external)
-- [ ] Tags are lowercase
+- [ ] Tags exist in `content/TAGS.yaml` (CI rejects unknown tags)
 - [ ] Local build succeeds (`yarn develop`)

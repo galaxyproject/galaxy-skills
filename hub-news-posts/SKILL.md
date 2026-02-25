@@ -26,11 +26,19 @@ content/news/2025-01-15-my-announcement/
 title: "Post Title"
 date: "YYYY-MM-DD"
 tease: "Short description for listing pages"
-authors: "Author Name"
 tags: [galaxy, training, tools]
 subsites: [all]
+contributions:
+  authorship:
+    - contributor-id        # GitHub username or ID from hub contributors
 ---
 ```
+
+**Note:** The `contributions` block replaces the old `authors` field. Contributor IDs (not free-text names) are used — these must match entries known to the hub. You can also add optional `funding` entries (e.g. `funding: [deNBI]`) under `contributions`.
+
+### Tags
+
+**IMPORTANT**: All tags must exist in `content/TAGS.yaml`. CI validation (`scripts/validate_news.py`) will reject unknown tags. Before using a tag, check the file to confirm it's in the allow-list. Tags are case-sensitive.
 
 ### Optional Frontmatter Fields
 
@@ -91,13 +99,14 @@ Supported styles:
 
 ## Workflow
 
-1. Create branch: `git checkout -b news/post-slug`
+1. Create feature branch: `git checkout -b news/post-slug`
 2. Create directory: `mkdir -p content/news/YYYY-MM-DD-slug-name`
 3. Add index.md with frontmatter
-4. Add images (resize large ones first)
-5. For Vega charts: create gist, use raw URL
-6. Test locally: `yarn develop`
-7. Commit and push
+4. Verify all tags exist in `content/TAGS.yaml`
+5. Add images (resize large ones first)
+6. For Vega charts: create gist, use raw URL
+7. Test locally: `yarn develop`
+8. Commit, push, and open a PR against `galaxyproject/galaxy-hub`
 
 ## Common Issues
 
@@ -106,6 +115,7 @@ Supported styles:
 | Build fails on images | Use `./` prefix in HTML img src |
 | Vega chart blank | Must use external URL (gist), not local file |
 | Large images slow build | Resize with PIL before committing |
+| CI fails on unknown tags | All tags must exist in `content/TAGS.yaml` — check before using |
 
 ## References
 

@@ -15,9 +15,11 @@ Save as: `content/news/2025-01-15-sample-announcement/index.md`
 title: "Galaxy 25.2 Released with Major Performance Improvements"
 date: "2025-01-15"
 tease: "50% faster job scheduling, new visualization tools, and enhanced workflow editor"
-authors: "Galaxy Team"
-tags: [release, galaxy, performance]
+tags: [release, galaxy]
 subsites: [all]
+contributions:
+  authorship:
+    - galaxyproject
 ---
 
 ![Galaxy 25.2 Release](./hero.png)
