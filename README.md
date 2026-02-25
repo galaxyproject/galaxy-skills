@@ -120,6 +120,17 @@ Interact with Galaxy instances via MCP, JupyterLite, or BioBlend.
 - Tool checking and workflow testing examples
 - BioBlend automation scripts
 
+### Server Tool Management
+
+**update-usegalaxy-tool** ✅
+
+Add or update ToolShed tool revisions in the [usegalaxy-tools](https://github.com/galaxyproject/usegalaxy-tools) repository.
+
+- Resolve changeset revisions via ToolShed API
+- Edit `.yml` / `.yml.lock` toolset files
+- Handle adds, updates, moves, and removals across sections
+- Lint with `fix_lockfile.py`
+
 ### Collection Manipulation
 
 **collection-manipulation** ✅
@@ -154,6 +165,10 @@ skills/
 ├── galaxy-integration/          # ✅ Galaxy instance integration
 │   ├── jupyterlite/             # JupyterLite notebooks (gxy package)
 │   └── mcp-reference/           # MCP tools reference
+│
+├── update-usegalaxy-tool/       # ✅ UseGalaxy tool management
+│   ├── SKILL.md                 # Main command (add/update ToolShed revisions)
+│   └── references/              # YAML file formats, ToolShed API, lint script
 │
 └── collection-manipulation/     # ✅ Collection transformations
     ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
