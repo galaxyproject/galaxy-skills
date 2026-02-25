@@ -31,12 +31,10 @@ subsites: [all]
 contributions:
   authorship:
     - contributor-id        # GitHub username or ID from hub contributors
-  funding:
-    - deNBI                 # Optional funding org IDs
 ---
 ```
 
-**Note:** The `contributions` block replaces the old `authors` field. Contributor IDs (not free-text names) are used — these must match entries known to the hub.
+**Note:** The `contributions` block replaces the old `authors` field. Contributor IDs (not free-text names) are used — these must match entries known to the hub. You can also add optional `funding` entries (e.g. `funding: [deNBI]`) under `contributions`.
 
 ### Tags
 
