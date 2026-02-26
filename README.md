@@ -84,6 +84,7 @@ Create and update Galaxy tool wrappers.
 
 - Comprehensive SKILL.md covering tool creation, testing, IUC review, and updates
 - **references/** - Standalone testing and tool placement guides (also used by other skills)
+- **tool-selection-diagram/** - Generate "which tool?" flowchart PNGs for multi-tool suites
 
 ### Content
 
@@ -141,7 +142,8 @@ skills/
 │
 ├── tool-dev/                    # ✅ Galaxy tool development
 │   ├── SKILL.md                # Comprehensive tool dev reference
-│   └── references/             # Testing, tool placement guides
+│   ├── references/             # Testing, tool placement guides
+│   └── tool-selection-diagram/ # Flowchart diagram generator for multi-tool suites
 │
 ├── hub-news-posts/              # ✅ Galaxy Hub posts
 │
