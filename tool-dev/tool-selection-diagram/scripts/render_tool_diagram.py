@@ -13,6 +13,7 @@ Usage:
 """
 
 import argparse
+import collections
 import json
 import math
 import os
@@ -40,17 +41,35 @@ BG_COLOR = "#FFFFFF"
 # ── Fonts ─────────────────────────────────────────────────────────────────
 # Galaxy $font-family-base: "Atkinson Hyperlegible", -apple-system, …
 _ATKINSON_DIR = os.path.expanduser("~/.local/share/fonts")
-_DEJAVU_DIR = "/usr/share/fonts/truetype/dejavu"
+_FONT_SEARCH_DIRS = [
+    _ATKINSON_DIR,
+    "/usr/share/fonts/truetype/dejavu",           # Debian/Ubuntu
+    "/usr/share/fonts/dejavu-sans-fonts",          # Fedora/RHEL
+    "/Library/Fonts",                              # macOS system
+    "/System/Library/Fonts/Supplemental",          # macOS supplemental
+    os.path.expanduser("~/Library/Fonts"),         # macOS user
+]
 
 
 def _pick_font(bold=False):
+    # Preferred: Atkinson Hyperlegible
     suffix = "Bold" if bold else "Regular"
-    for path in [
-        f"{_ATKINSON_DIR}/AtkinsonHyperlegible-{suffix}.ttf",
-        f"{_DEJAVU_DIR}/DejaVuSans{'-Bold' if bold else ''}.ttf",
-    ]:
-        if os.path.isfile(path):
-            return path
+    atkinson = f"{_ATKINSON_DIR}/AtkinsonHyperlegible-{suffix}.ttf"
+    if os.path.isfile(atkinson):
+        return atkinson
+
+    # Fallback: search for common sans-serif fonts across platforms
+    bold_suffix = "-Bold" if bold else ""
+    candidates = [
+        f"DejaVuSans{bold_suffix}.ttf",
+        f"Arial{' Bold' if bold else ''}.ttf",
+        f"Helvetica{' Bold' if bold else ''}.ttc",
+    ]
+    for font_dir in _FONT_SEARCH_DIRS:
+        for name in candidates:
+            path = os.path.join(font_dir, name)
+            if os.path.isfile(path):
+                return path
     return None
 
 
@@ -112,9 +131,11 @@ def hex_to_rgb(hex_color):
 
 
 def load_font(path, size):
+    if path is None:
+        return ImageFont.load_default()
     try:
         return ImageFont.truetype(path, size)
-    except (OSError, TypeError):
+    except (OSError, TypeError, AttributeError):
         return ImageFont.load_default()
 
 
@@ -310,9 +331,9 @@ def layout(draw, root):
 
 def collect_nodes(root):
     nodes = []
-    queue = [root]
+    queue = collections.deque([root])
     while queue:
-        node = queue.pop(0)
+        node = queue.popleft()
         nodes.append(node)
         queue.extend(node.children)
     return nodes
