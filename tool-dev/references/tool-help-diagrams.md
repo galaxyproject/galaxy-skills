@@ -4,14 +4,39 @@ Hand-coded SVG schematics that show input → operation → output for Galaxy to
 
 ## Where Diagrams Live
 
+**Built-in tools** (tools bundled with the Galaxy codebase):
+
 ```
 galaxy/static/images/tools/collection_ops/   # collection operation diagrams
-galaxy/static/images/tools/<category>/        # other tool categories (convention)
+```
+
+**External tools** (the vast majority — tools-iuc, tools-devteam, etc.):
+
+```
+tools/<tool_name>/static/images/             # per-tool static directory
+```
+
+For example:
+
+```
+tools/phyloseq/static/images/standard_plot.png
+tools/bandage/static/images/bandage_graph.png
+tool_collections/bamtools/bamtools_filter/static/images/complex-filters.png
 ```
 
 ## How to Embed in Tool XML
 
 Inside the `<help>` section (reStructuredText):
+
+**External tools** — use `$PATH_TO_IMAGES` (resolves to the tool's `static/images/` dir):
+
+```rst
+.. image:: $PATH_TO_IMAGES/my_diagram.svg
+  :alt: Description of the diagram
+  :width: 500
+```
+
+**Built-in Galaxy tools** — use `${static_path}` (resolves to Galaxy's central static dir):
 
 ```rst
 .. image:: ${static_path}/images/tools/collection_ops/flatten.svg
@@ -19,7 +44,7 @@ Inside the `<help>` section (reStructuredText):
   :width: 500
 ```
 
-- `${static_path}` resolves to Galaxy's static directory at runtime
+General rules:
 - `:width:` — typically 500 for simple diagrams, 620–800 for complex ones
 - `:alt:` — always include for accessibility
 - Place after the text description, usually at the end of the help section
@@ -153,7 +178,7 @@ When a tool has multiple usage patterns (e.g., build_list):
 
 7. **Add annotation** — italic text at the bottom explaining the transformation rule (e.g., "hierarchy removed, identifiers joined").
 
-8. **Save as SVG** in `static/images/tools/<category>/`.
+8. **Save as SVG** in `<tool_dir>/static/images/` (external tools) or `static/images/tools/<category>/` (built-in tools).
 
 9. **Add `.. image::` directive** to the tool's `<help>` section.
 
@@ -244,6 +269,6 @@ A simple 1-input → 1-output diagram highlighting the removed element:
 - [ ] Layout is left-to-right: input → arrow → output
 - [ ] Uses 2–3 example elements (not more)
 - [ ] Bottom annotation explains the transformation
-- [ ] Saved to `static/images/tools/<category>/`
-- [ ] `.. image::` directive added to tool `<help>` with `:alt:` and `:width:`
+- [ ] Saved to `static/images/` (external tools) or `static/images/tools/<category>/` (built-in)
+- [ ] `.. image::` directive added to tool `<help>` using `$PATH_TO_IMAGES` (external) or `${static_path}` (built-in), with `:alt:` and `:width:`
 - [ ] Renders correctly in a browser before committing
