@@ -600,7 +600,7 @@ When the underlying tool accepts compressed input natively (or you add decompres
 <param name="reads" type="data" format="fastqsanger,fastqsanger.gz,fastqsanger.bz2" label="Reads"/>
 ```
 
-**FASTQ format naming:** Always use `fastqsanger` or `fastqillumina` instead of generic `fastq`. Galaxy distinguishes FASTQ quality encoding variants and reviewers will flag the generic name. For tools accepting any FASTQ encoding, list both: `format="fastqsanger,fastqsanger.gz,fastqillumina,fastqillumina.gz"`.
+**FASTQ format naming:** Always use `fastqsanger` or `fastqillumina` instead of generic `fastq`. Galaxy distinguishes FASTQ quality encoding variants and reviewers will flag the generic name. For tools accepting compressed FASTQ and both encoding, list all 4 variants: `format="fastqsanger,fastqsanger.gz,fastqillumina,fastqillumina.gz"`.
 
 If you accept compressed formats, include tests with both compressed and uncompressed inputs to verify both paths work.
 
