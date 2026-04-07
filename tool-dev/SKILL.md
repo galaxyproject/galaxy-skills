@@ -161,7 +161,7 @@ When the CLI can't produce the output Galaxy needs (format conversion, multi-ste
 
 ### Galaxy `.dat` Extension and Format Auto-Detection
 
-Galaxy stores datasets internally with a `.dat` extension (e.g., `dataset_d562...7f33.dat`). Tools that auto-detect input format from the file extension (like MMseqs2) will fail because `.dat` is not a recognized bioinformatics format. The fix is to create symlinks with the correct extension derived from Galaxy's datatype:
+Galaxy stores datasets internally with a `.dat` extension (e.g., `dataset_d562...7f33.dat`). Tools that auto-detect input format from the file extension will fail because `.dat` is not a recognized bioinformatics format. The fix is to create symlinks with the correct extension derived from Galaxy's datatype:
 
 ```xml
 <command detect_errors="aggressive"><![CDATA[
