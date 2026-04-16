@@ -2,11 +2,11 @@
 
 All directives must use **block syntax**. One directive per fenced block.
 
-```
+````
 ```galaxy
 directive_name(arg=value)
 ```
-```
+````
 
 The `${galaxy ...}` inline syntax does **not** work in workflow report templates.
 
@@ -111,8 +111,8 @@ Use `step="<step label>"` in workflow templates. Step label must match exactly.
 
 `collapse="<link text>"` — wraps any block directive in a collapsible section.
 
-```
+````
 ```galaxy
 job_parameters(step="Alignment", collapse="Show alignment parameters")
 ```
-```
+````

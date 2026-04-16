@@ -103,13 +103,13 @@ For non-image inputs or a general input listing, use `invocation_inputs()`.
 
 **1. Title + run timestamp**
 
-```
+````
 # <Workflow Name>
 
 ```galaxy
 invocation_time()
 ```
-```
+````
 
 **2. Summary**
 - One paragraph: what the workflow is designed to do, what inputs it expects, what outputs it should produce.

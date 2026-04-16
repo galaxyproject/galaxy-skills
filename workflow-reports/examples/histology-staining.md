@@ -54,7 +54,7 @@ A complete worked example of applying the workflow-reports skill to a real imagi
 
 ## Resulting Report Template
 
-```markdown
+````markdown
 # Histological Staining Area Quantification
 
 ```galaxy
@@ -134,7 +134,7 @@ history_dataset_link(output="Tabular File: Staining Feature Results", label="Dow
 ```galaxy
 history_link()
 ```
-```
+````
 
 ---
 

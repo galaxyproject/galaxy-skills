@@ -44,7 +44,7 @@ All steps have labels. Key ones used: `Nuclear segmentation`.
 
 ## Resulting Report Template
 
-```markdown
+````markdown
 # End-to-End Tissue Microarray Analysis
 
 ```galaxy
@@ -173,4 +173,4 @@ history_link()
 ```galaxy
 workflow_display(collapse="Show full workflow details")
 ```
-```
+````
