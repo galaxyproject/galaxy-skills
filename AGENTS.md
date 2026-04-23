@@ -69,6 +69,18 @@ If the user asks to add or update a ToolShed tool revision in the usegalaxy-tool
 - References:
   - `update-usegalaxy-tool/references/file-formats.md` (usegalaxy-tools YAML file formats, ToolShed API, lint script)
 
+## Workflow Reports
+
+If the user asks to create, draft, or write a Galaxy workflow report template for the Workflow Editor's Report tab:
+
+- Skill:
+  - `workflow-reports/SKILL.md` (single self-contained skill)
+
+- References:
+  - `workflow-reports/references/directives.md` (Galaxy markdown directive reference)
+  - `workflow-reports/examples/histology-staining.md` (worked example: imaging quantification)
+  - `workflow-reports/examples/tissue-microarray-analysis.md` (worked example: multiplex tissue analysis)
+
 ## Other skills in this repo
 
 If the user asks about one of these tasks, use the corresponding skill:
