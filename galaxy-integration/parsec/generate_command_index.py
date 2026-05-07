@@ -17,7 +17,7 @@ from pathlib import Path
 
 import click
 
-SKILL_PATH = Path(__file__).parent / "SKILL.md"
+SKILL_PATH = Path(__file__).parent / "references" / "commands.md"
 MARKER_START = "<!-- AUTO-GENERATED:START -->"
 MARKER_END = "<!-- AUTO-GENERATED:END -->"
 
@@ -35,6 +35,12 @@ WRITE_PREFIXES = ("create_", "update_", "upload_", "import_", "run_", "put_",
                   "publish_", "copy_", "extract_", "refactor_", "set_",
                   "report_", "open_", "undelete_")
 DESTRUCTIVE_PREFIXES = ("delete_", "purge_", "cancel_", "remove_", "uninstall_")
+TAG_TITLES = {
+    "R": "Read-only commands",
+    "W": "Write/create commands",
+    "D": "Destructive commands",
+    "A": "Admin-only commands",
+}
 
 
 def classify(group: str, command: str) -> str:
@@ -69,14 +75,14 @@ def build_table() -> str:
     from parsec.cli import parsec as root_cmd
 
     ctx = click.Context(root_cmd)
-    rows = []
+    rows_by_tag = {tag: [] for tag in TAG_TITLES}
     for group_name in root_cmd.list_commands(ctx):
         group_cmd = root_cmd.get_command(ctx, group_name)
         if group_cmd is None:
             continue
         if not hasattr(group_cmd, "list_commands"):
             tag = classify(group_name, group_name)
-            rows.append((group_name, group_name, tag, short_help(group_cmd)))
+            rows_by_tag[tag].append((group_name, group_name, short_help(group_cmd)))
             continue
         subctx = click.Context(group_cmd)
         for sub_name in group_cmd.list_commands(subctx):
@@ -84,13 +90,23 @@ def build_table() -> str:
             if sub_cmd is None:
                 continue
             tag = classify(group_name, sub_name)
-            rows.append((group_name, sub_name, tag, short_help(sub_cmd)))
+            rows_by_tag[tag].append((group_name, sub_name, short_help(sub_cmd)))
 
-    header = "| Group | Command | Tag | Description |\n|-------|---------|-----|-------------|"
-    lines = [header]
-    for group, command, tag, desc in rows:
-        lines.append(f"| {group} | {command} | {tag} | {desc} |")
-    return "\n".join(lines)
+    sections = []
+    for tag, title in TAG_TITLES.items():
+        rows = rows_by_tag[tag]
+        if not rows:
+            continue
+        lines = [
+            f"### {title}",
+            "",
+            "| Group | Command | Description |",
+            "|-------|---------|-------------|",
+        ]
+        for group, command, desc in rows:
+            lines.append(f"| {group} | {command} | {desc} |")
+        sections.append("\n".join(lines))
+    return "\n\n".join(sections)
 
 
 def regenerate(skill_path: Path) -> None:
