@@ -106,6 +106,7 @@ Place your skill in the appropriate category:
 | `nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
 | `galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
 | `collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
+| `trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
 
 ---
 
