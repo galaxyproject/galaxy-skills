@@ -69,6 +69,36 @@ invoke_workflow(
 - `hdca` = HistoryDatasetCollectionAssociation (collection)
 - `ldda` = LibraryDatasetDatasetAssociation
 
+## Optional Parameter Inputs Must Be Explicit
+
+**Problem**: Omitting an optional `parameter_input` step from the `inputs` dict causes downstream tools to receive an unresolved `ConnectedValue` placeholder, producing command lines with literal garbage like `'Xgalaxy.tools.parameters.workflow_utils.ConnectedValue object at 0x...X'` and tool failures with cryptic exit codes.
+
+**Solution**: Always pass an explicit value for **every** `parameter_input` step in the workflow, even ones marked `optional: true`. Use `""` for empty text, `null` for empty data inputs:
+
+```python
+# WRONG - inputs 1 and 2 (optional adapter sequences) omitted
+inputs = {
+    "0": {"src": "hdca", "id": collection_id},
+    "5": {"src": "hda", "id": gtf_id},
+    "6": "stranded - reverse",
+    # ...
+}
+
+# CORRECT - explicit empty strings for optional text params
+inputs = {
+    "0": {"src": "hdca", "id": collection_id},
+    "1": "",                          # Forward adapter (optional)
+    "2": "",                          # Reverse adapter (optional)
+    "5": {"src": "hda", "id": gtf_id},
+    "6": "stranded - reverse",
+    # ...
+}
+```
+
+**How to verify before invoking**: call `get_workflow_details(workflow_id)` and check the `inputs` dict — every numeric key (step index) of type `parameter_input` needs a corresponding entry in your `inputs`, regardless of `optional` status.
+
+**How to diagnose after failure**: if a tool fails with no obvious stderr cause, fetch `get_job_details(dataset_id)` and inspect `command_line` for the string `ConnectedValue object at 0x`. That signature confirms the omitted-optional-input bug.
+
 ## Connection Issues
 
 ```python
