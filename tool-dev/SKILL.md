@@ -228,7 +228,7 @@ For tools producing variable numbers of output files, use `discover_datasets`:
 
 Use `format="markdown"` for new tools (preferred over RST). Structure with bold `**headers**`, horizontal rules `-----` between sections, double backticks for code references, and end with a citation block. Keep it concise and actionable.
 
-**Lint caveat:** Even with `format="markdown"`, `planemo lint` still validates help content as RST. RST grid tables with alignment issues will fail the `HelpValidRST` check. Use simple bullet lists or definition lists instead of complex tables in help sections.
+**Lint caveat:** Even with `format="markdown"`, `planemo lint` still validates help content as RST. RST grid tables with alignment issues will fail the `HelpValidRST` check. Use simple bullet lists or definition lists instead of complex tables in help sections. (Tracked upstream: [planemo#1650](https://github.com/galaxyproject/planemo/issues/1650).)
 
 ---
 
