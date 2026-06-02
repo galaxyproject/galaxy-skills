@@ -141,6 +141,17 @@ Transform Galaxy dataset collections reproducibly using native tools.
 - Apply Rules DSL for complex restructuring
 - API patterns and pitfall avoidance
 
+### User-Defined Tools
+
+**user-defined-tools** ✅
+
+Create Galaxy user-defined tools (UDTs) via `galaxy_create_user_tool`.
+
+- `GalaxyUserTool` representation schema reference
+- Required `help` section convention with minimal template
+- Good vs bad examples
+- Iteration and cleanup guidance (UDTs accumulate per version)
+
 ---
 
 ## Repository Structure
@@ -168,9 +179,12 @@ skills/
 │   ├── SKILL.md                 # Main command (add/update ToolShed revisions)
 │   └── references/              # YAML file formats, ToolShed API, lint script
 │
-└── collection-manipulation/     # ✅ Collection transformations
-    ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
-    └── references/              # Tools catalog, Apply Rules DSL, API, tests
+├── collection-manipulation/     # ✅ Collection transformations
+│   ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
+│   └── references/              # Tools catalog, Apply Rules DSL, API, tests
+│
+└── user-defined-tools/          # ✅ Galaxy user-defined tools (UDTs)
+    └── SKILL.md                 # Schema, required help section, examples
 ```
 
 ---

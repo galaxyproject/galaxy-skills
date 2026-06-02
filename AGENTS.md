@@ -81,6 +81,15 @@ If the user asks to create, draft, or write a Galaxy workflow report template fo
   - `workflow-reports/examples/histology-staining.md` (worked example: imaging quantification)
   - `workflow-reports/examples/tissue-microarray-analysis.md` (worked example: multiplex tissue analysis)
 
+## User-Defined Tools (UDTs)
+
+If the user asks to create a user-defined tool, register a custom tool in Galaxy via `galaxy_create_user_tool`, or wrap a small CLI step as a Galaxy tool that runs unprivileged in their account:
+
+- Skill:
+  - `user-defined-tools/SKILL.md` (single self-contained skill)
+
+UDTs are distinct from IUC XML tool wrappers — they are JSON `GalaxyUserTool` representations created over the API. Every UDT must include a non-empty `help` section. For traditional XML wrappers reviewed by `tools-iuc`, use `tool-dev/SKILL.md` instead.
+
 ## Other skills in this repo
 
 If the user asks about one of these tasks, use the corresponding skill:
