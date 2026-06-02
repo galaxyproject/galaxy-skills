@@ -163,6 +163,24 @@ When the CLI can't produce the output Galaxy needs (format conversion, multi-ste
 
 **Parameter parity rule:** Every param in `<inputs>` must appear in `<command>`, and every flag in `<command>` must trace back to an `<inputs>` param or a macro token. Orphaned params are a lint warning and a review flag.
 
+### Galaxy `.dat` Extension and Format Auto-Detection
+
+Galaxy stores datasets internally with a `.dat` extension (e.g., `dataset_d562...7f33.dat`). Tools that auto-detect input format from the file extension will fail because `.dat` is not a recognized bioinformatics format. The fix is to create symlinks with the correct extension derived from Galaxy's datatype:
+
+```xml
+<command detect_errors="aggressive"><![CDATA[
+#if $input.is_of_type('fastq.gz'):
+    ln -s '$input' in.fastq.gz &&
+#else if $input.is_of_type('fastq'):
+    ln -s '$input' in.fastq &&
+#end if
+
+mytool search in.fastq ...
+]]></command>
+```
+
+Use `is_of_type()` to branch on the datatype and symlink with the matching extension. Galaxy treats `fastqsanger`/`fastqillumina` as `fastq` for this purpose, so a `fastq`/`fastq.gz` check covers the common encodings.
+
 **Index generation:** When a tool needs to index input files, create symlinks to the inputs in the working directory — don't try to write indices next to the (read-only) input files.
 
 ### Output Paths and `from_work_dir`
@@ -213,6 +231,8 @@ For tools producing variable numbers of output files, use `discover_datasets`:
 ### Help Section
 
 Use `format="markdown"` for new tools (preferred over RST). Structure with bold `**headers**`, horizontal rules `-----` between sections, double backticks for code references, and end with a citation block. Keep it concise and actionable.
+
+**Lint caveat:** Even with `format="markdown"`, `planemo lint` still validates help content as RST. RST grid tables with alignment issues will fail the `HelpValidRST` check. Use simple bullet lists or definition lists instead of complex tables in help sections. (Tracked upstream: [planemo#1650](https://github.com/galaxyproject/planemo/issues/1650).)
 
 ---
 
@@ -273,6 +293,10 @@ This is the single most common IUC review comment. Get it right from the start.
 ```
 
 ### Named Yields and Token Parameterization
+
+> If you need the same param in several `<when>` blocks, make it its own small macro and expand it in each block, rather than relying on a shared unnamed `<yield/>`.
+
+#### Named Yields
 
 For complex macros, use **named yields** to inject content into specific slots:
 
@@ -405,6 +429,20 @@ Integer and float params: `0` is a valid value but falsy in Cheetah/Python. Use 
 #end if
 ```
 
+### Multi-Select `optional="true"` Returns `None`
+
+When a multi-select param has `optional="true"` and the user makes no selection, the Cheetah value is Python `None` — which renders as the literal string `'None'`. Always check truthiness before joining:
+
+```
+## BAD: produces --format-output 'None' when nothing is selected
+--format-output '${ ",".join(str($format_fields).split(",")) }'
+
+## GOOD: check truthiness first
+#if $format_fields
+    --format-output '${ ",".join($format_fields) }'
+#end if
+```
+
 ### For Loops (Multi-Select Parameters)
 
 ```
@@ -527,6 +565,8 @@ When the underlying tool accepts compressed input natively (or you add decompres
 <param name="input" type="data" format="fasta,fasta.gz" label="Input sequences"/>
 <param name="reads" type="data" format="fastqsanger,fastqsanger.gz,fastqsanger.bz2" label="Reads"/>
 ```
+
+**FASTQ format naming:** Always use `fastqsanger` or `fastqillumina` instead of generic `fastq`. Galaxy distinguishes FASTQ quality encoding variants and reviewers will flag the generic name. For tools accepting compressed FASTQ and both encoding, list all 4 variants: `format="fastqsanger,fastqsanger.gz,fastqillumina,fastqillumina.gz"`.
 
 If you accept compressed formats, include tests with both compressed and uncompressed inputs to verify both paths work.
 
@@ -761,6 +801,12 @@ Test conditionals and sections with explicit nesting (not pipe syntax):
 ### Running Tests
 
 Run `planemo test --biocontainers` to execute tests. See **Reference: Useful Planemo Commands** at the end of this document for the full command set.
+
+**Fallback when Docker is unavailable:** If `--biocontainers` fails with exit code 127 (Docker not found), point `PATH` at an environment that already has the tool and let planemo resolve the rest:
+
+```bash
+PATH="/path/to/env/bin:$PATH" planemo test tools/mytool/
+```
 
 ### Generating Expected Output Files
 
