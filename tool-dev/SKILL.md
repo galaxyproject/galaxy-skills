@@ -165,24 +165,17 @@ Galaxy stores datasets internally with a `.dat` extension (e.g., `dataset_d562..
 
 ```xml
 <command detect_errors="aggressive"><![CDATA[
-#set $query_ext = str($query_fasta.ext).replace('sanger', '').replace('illumina', '')
-ln -s '$query_fasta' 'query.${query_ext}' &&
+#if $input.is_of_type('fastq.gz'):
+    ln -s '$input' in.fastq.gz &&
+#else if $input.is_of_type('fastq'):
+    ln -s '$input' in.fastq &&
+#end if
 
-mytool search 'query.${query_ext}' ...
+mytool search in.fastq ...
 ]]></command>
 ```
 
-The `str($var.ext).replace('sanger', '').replace('illumina', '')` pattern maps Galaxy datatypes to standard file extensions:
-
-| Galaxy datatype | `$var.ext` | After replace | Symlink |
-|----------------|-----------|---------------|---------|
-| fasta | `fasta` | `fasta` | `query.fasta` |
-| fasta.gz | `fasta.gz` | `fasta.gz` | `query.fasta.gz` |
-| fastqsanger | `fastqsanger` | `fastq` | `query.fastq` |
-| fastqsanger.gz | `fastqsanger.gz` | `fastq.gz` | `query.fastq.gz` |
-| fastqillumina | `fastqillumina` | `fastq` | `query.fastq` |
-
-This is especially common for tools that accept both FASTA and FASTQ, both compressed and uncompressed. Always symlink with the dynamic extension — hardcoding `.fasta` breaks when users provide gzipped or FASTQ inputs.
+Use `is_of_type()` to branch on the datatype and symlink with the matching extension. Galaxy treats `fastqsanger`/`fastqillumina` as `fastq` for this purpose, so a `fastq`/`fastq.gz` check covers the common encodings.
 
 **Index generation:** When a tool needs to index input files, create symlinks to the inputs in the working directory — don't try to write indices next to the (read-only) input files.
 
@@ -297,38 +290,7 @@ This is the single most common IUC review comment. Get it right from the start.
 
 ### Named Yields and Token Parameterization
 
-#### Unnamed `<yield/>`
-
-Use `<yield/>` (without a name) for simple extensibility. Content placed inside the `<expand>` tag replaces every `<yield/>` in the macro:
-
-```xml
-<!-- In macros.xml -->
-<xml name="dbtype_conditional">
-    <conditional name="alph_type">
-        <param argument="--dbtype" type="select" label="Input data type">
-            <option value="0" selected="true">Automatic</option>
-            <option value="1">Amino acid</option>
-            <option value="2">Nucleotides</option>
-        </param>
-        <when value="0"/>
-        <when value="1">
-            <param argument="--comp-bias-corr-scale" type="float" value="1" label="Scale composition bias correction"/>
-            <yield/>
-        </when>
-        <when value="2">
-            <param argument="--zdrop" type="integer" value="40" label="Max z-drop"/>
-            <yield/>
-        </when>
-    </conditional>
-</xml>
-
-<!-- In tool XML — yield content appears in BOTH <when> blocks -->
-<expand macro="dbtype_conditional">
-    <param argument="--kmer-per-seq-scale" type="float" value="0.000" label="Scale k-mer per sequence"/>
-</expand>
-```
-
-**Important:** When `<yield/>` appears inside multiple `<when>` blocks, the yielded content is inserted into **all** of them. Design macros accordingly.
+> If you need the same param in several `<when>` blocks, make it its own small macro and expand it in each block, rather than relying on a shared unnamed `<yield/>`.
 
 #### Named Yields
 
@@ -767,22 +729,6 @@ If the upstream CLI has no hard memory limit, surface the parameter that proxies
 <param argument="--memory" type="integer" value="4" label="Memory (GB)"/>
 ```
 
-### Out-of-Memory Detection
-
-For memory-intensive tools (assemblers, search tools, indexers), add OOM detection via `<stdio>` regex. This gives Galaxy proper error categorization instead of a generic failure. Note: `<stdio>` is only needed for the `fatal_oom` level (enables automatic resubmission to larger runners). For general error detection, `detect_errors="aggressive"` on the `<command>` element is sufficient and preferred — you don't need both `<stdio>` regexes and `detect_errors="aggressive"` for catching ordinary errors.
-
-```xml
-<xml name="stdio">
-    <stdio>
-        <regex match="Failed to allocate" source="stderr" level="fatal_oom"/>
-        <regex match="std::bad_alloc" source="stderr" level="fatal_oom"/>
-        <regex match="Cannot allocate memory" source="stderr" level="fatal_oom"/>
-    </stdio>
-</xml>
-```
-
-Tools like Diamond and Velvet use this pattern. The `fatal_oom` level tells Galaxy the job failed due to memory exhaustion, which enables automatic resubmission to a larger runner if configured by the admin.
-
 ---
 
 ## 8. Test Infrastructure
@@ -852,11 +798,10 @@ Test conditionals and sections with explicit nesting (not pipe syntax):
 
 Run `planemo test --biocontainers` to execute tests. See **Reference: Useful Planemo Commands** at the end of this document for the full command set.
 
-**Fallback when Docker is unavailable:** If `--biocontainers` fails with exit code 127 (Docker not found), install the tool via conda and run without dependency resolution:
+**Fallback when Docker is unavailable:** If `--biocontainers` fails with exit code 127 (Docker not found), point `PATH` at an environment that already has the tool and let planemo resolve the rest:
 
 ```bash
-conda create -p /path/to/env -c conda-forge -c bioconda <tool>=<version>
-PATH="/path/to/env/bin:$PATH" planemo test --no_conda_auto_init --no_dependency_resolution tools/mytool/
+PATH="/path/to/env/bin:$PATH" planemo test tools/mytool/
 ```
 
 ### Generating Expected Output Files
