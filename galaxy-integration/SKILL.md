@@ -17,6 +17,7 @@ Route to the appropriate sub-skill based on task:
 | Write JupyterLite notebook | `jupyterlite-galaxy` | `jupyterlite/SKILL.md` |
 | MCP tools reference | `galaxy-mcp-reference` | `mcp-reference/SKILL.md` |
 | History/dataset access | - | `mcp-reference/history-access.md` |
+| Name tags for tracking runs | - | `mcp-reference/name-tags.md` |
 | Common gotchas | - | `mcp-reference/gotchas.md` |
 | BioBlend batch scripts | - | `scripts/galaxy_tool_checker.py` |
 | Tool checking examples | - | `examples/tool-checking.md` |
@@ -84,6 +85,8 @@ GALAXY_API_KEY=your_actual_api_key_here
    get_history_contents(history_id=...)
    # Fix and repeat
    ```
+
+   When launching **multiple** workflows/runs over a dataset set, apply a Galaxy **name tag** (`#run`) so each invocation's outputs stay traceable in the history. See `mcp-reference/name-tags.md`.
 
 ## Output Expectations
 
