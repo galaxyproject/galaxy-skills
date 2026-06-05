@@ -1,6 +1,12 @@
 ---
 name: galaxy-mcp-reference
 description: Galaxy MCP server tools reference for histories, datasets, tools, and workflows
+metadata:
+  surfaces: [loom]
+when_to_use: >
+  Reach for this before any Galaxy MCP tool call -- creating/listing histories,
+  uploading data, finding and running tools, inspecting datasets or invocations --
+  and for the common gotchas (id vs name, history vs dataset ids, collection shapes).
 user_invocable: true
 ---
 
