@@ -1,6 +1,8 @@
 ---
 name: galaxy-transform-collection
 description: Galaxy Collection Transformation Command - transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when asked to filter, sort, relabel, restructure, flatten, nest, merge, or otherwise manipulate Galaxy collections.
+metadata:
+  surfaces: [loom]
 user_invocable: true
 ---
 
