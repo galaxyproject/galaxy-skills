@@ -141,6 +141,16 @@ Transform Galaxy dataset collections reproducibly using native tools.
 - Apply Rules DSL for complex restructuring
 - API patterns and pitfall avoidance
 
+### Command-Line Tooling
+
+**gxwf-cli** ✅
+
+Drive the `gxwf` and `galaxy-tool-cache` CLIs from [`@galaxy-tool-util/cli`](https://github.com/jmchilton/galaxy-tool-util-ts).
+
+- `gxwf` — validate, lint, clean, convert, roundtrip, and diagram workflows (single-file or tree)
+- `galaxy-tool-cache` — cache and inspect tool metadata / schemas
+- Synced verbatim from galaxy-tool-util-ts (source of truth); `make -C gxwf-cli sync` to refresh
+
 ---
 
 ## Repository Structure
@@ -168,9 +178,13 @@ skills/
 │   ├── SKILL.md                 # Main command (add/update ToolShed revisions)
 │   └── references/              # YAML file formats, ToolShed API, lint script
 │
-└── collection-manipulation/     # ✅ Collection transformations
-    ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
-    └── references/              # Tools catalog, Apply Rules DSL, API, tests
+├── collection-manipulation/     # ✅ Collection transformations
+│   ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
+│   └── references/              # Tools catalog, Apply Rules DSL, API, tests
+│
+└── gxwf-cli/                    # ✅ gxwf / galaxy-tool-cache CLI reference
+    ├── SKILL.md                 # Synced command/option reference (both binaries)
+    └── Makefile                 # `make sync` re-pulls from galaxy-tool-util-ts
 ```
 
 ---
