@@ -81,6 +81,19 @@ If the user asks to create, draft, or write a Galaxy workflow report template fo
   - `workflow-reports/examples/histology-staining.md` (worked example: imaging quantification)
   - `workflow-reports/examples/tissue-microarray-analysis.md` (worked example: multiplex tissue analysis)
 
+## gxwf / galaxy-tool-util CLI
+
+If the user asks to validate, lint, clean, convert, roundtrip, or diagram Galaxy workflow files
+(`.ga`, `.gxwf.yml`) — single-file or over a tree — or to cache/inspect tool metadata, via the
+`gxwf` / `galaxy-tool-cache` CLIs from `@galaxy-tool-util/cli`:
+
+- Skill:
+  - `gxwf-cli/SKILL.md` (full command/option reference for both binaries)
+
+This skill is synced verbatim from
+[galaxy-tool-util-ts](https://github.com/jmchilton/galaxy-tool-util-ts), the source of truth, where
+it is generated from the CLI definitions. Re-pull with `make -C gxwf-cli sync`; do not hand-edit.
+
 ## Other skills in this repo
 
 If the user asks about one of these tasks, use the corresponding skill:
