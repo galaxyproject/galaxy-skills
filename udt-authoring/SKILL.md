@@ -110,8 +110,11 @@ check offline before submitting. Three tiers, weakest to strongest:
 1. **Local** (fast, offline, side-effect-free): `python scripts/validate.py my-tool.yml`. Needs
    `pip install galaxy-tool-util`. Catches structural errors, the four semantic validators, and
    lint warnings. Use this whenever a Python env is available (terminal, CI). See `scripts/`.
-2. **`planemo lint`** -- not available yet (planemo does not lint UDTs as of this writing); will be
-   the preferred ergonomic check once it lands.
+2. **`planemo lint`** -- not available yet (planemo does not lint UDTs as of this writing). It
+   already depends on `galaxy-tool-util`, so teaching it to lint a `GalaxyUserTool` YAML would be a
+   small addition, and it's the natural future home for tier 1. Down the road `scripts/validate.py`
+   should migrate to `planemo lint <tool>.yml`, so authors get this check through the standard Galaxy
+   tool CLI instead of a bundled script. Until that lands, use tier 1.
 3. **Server create** -- `create_user_tool` / `POST /api/unprivileged_tools` runs the same lint and
    confirms *this server* accepts it (needs `enable_beta_tool_formats` + the Custom Tool Execution
    role). This is the final word, and the practical gate for environments without Python (e.g.
