@@ -17,13 +17,27 @@ and any helpers you add via a `javascript` requirement's `expression_lib`.
 | A boolean turned into a flag | `$(inputs.trim ? '--trim' : '')` |
 | A select value chosen into an option | `$(inputs.mode === 'fast' ? '-x' : '-y')` |
 
-A `data` input is an **object** -- you almost always want `.path`, not the object itself. A
-`multiple: true` data input is an **array** of those objects; map over it.
+A `data` input is an **object** (a CWL-style File object, not a bare path string) -- you almost
+always want `.path`. A `multiple: true` data input is an **array** of those objects; map over it.
 
 ```yaml
 shell_command: |
   cat $(inputs.datasets.map((input) => input.path).join(' ')) > output.txt
 ```
+
+## Quoting: scalar values are not auto-quoted
+
+Galaxy substitutes `$(...)` expressions into `shell_command` as **raw text** -- unlike `base_command`
+arguments, they are *not* run through `shlex.quote`. So a `text` or `select` value containing a
+space, quote, `$`, or other shell metacharacter will break or alter the command (it is also an
+injection vector if the value is attacker-controlled).
+
+- **Quote interpolations defensively:** `'$(inputs.reads.path)'`, `'$(inputs.label)'`.
+- **For free-form text you don't control, prefer a configfile** -- write the value into a JSON file
+  and read it in the command, rather than inlining it (see Config files below).
+- **`select` inputs with a fixed option list, and numeric `integer`/`float`, are safe to inline** --
+  their values can't contain surprises.
+- Data `.path` values are Galaxy-generated and normally clean, but quoting them costs nothing.
 
 ## Job resources: `$GALAXY_SLOTS` (a shell variable, not an expression)
 
@@ -71,6 +85,10 @@ requirements:
 shell_command: |
   tool $(pick(inputs.fast, '--fast', '--accurate')) '$(inputs.reads.path)' > out.txt
 ```
+
+`expression_lib` and the `javascript` requirement are accepted by the UDT schema and wired up at
+runtime, but they aren't covered by the official UDT docs -- confirm on your target server before
+relying on them.
 
 ## Embedding a script (heredoc)
 

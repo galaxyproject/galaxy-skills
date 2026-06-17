@@ -32,10 +32,14 @@ A UDT = a **container** + a **`shell_command`** + typed **`inputs`** and **`outp
 - Parameters are interpolated with **sandboxed ECMAScript inside `$(...)`** -- NOT Cheetah `$x` and
   NOT `#for#` loops. A data file's path is `$(inputs.name.path)`; a scalar value is
   `$(inputs.name)`.
-- The sandbox has **no database, filesystem, or network access**. Every UDT **must run in a
-  container** (`container:` is a required plain string).
-- Every output must **claim a file** it produced via `from_work_dir` (one file) or
-  `discover_datasets` (many) -- you do not write to a templated output path.
+- The `$(...)` templating sandbox has **no database or filesystem access**. Every UDT **must run in
+  a container** (`container:` is a required plain string); whether that container has network access
+  is set by the Galaxy admin's job config, not by the tool.
+- Every **dataset/collection** output must **claim a file** it produced via `from_work_dir` (one
+  file) or `discover_datasets` (many) -- you do not write to a templated output path.
+- Scalar `text`/`select` values interpolate into `shell_command` **unquoted** (unlike `base_command`
+  args, which are `shlex.quote`d) -- a value with spaces or quotes breaks the command. Quote them,
+  or pass free text via a configfile. See `references/templating.md`.
 
 If you find yourself writing `command:`, `$param`, `#for#`, `truevalue:`, or `${on_string}`, stop
 -- those are XML/Cheetah habits the schema rejects. See `references/common-mistakes.md`.
@@ -152,14 +156,29 @@ check offline before submitting. Three tiers, weakest to strongest:
 > create lint -- verifies that the container image actually pulls or that the command succeeds.
 > Those only surface when the job runs. A nonexistent container tag (`manifest unknown` at run
 > time) is the most common real-world UDT failure, so verify the image (see "Choosing a Container")
-> before relying on a clean validation.
+> before relying on a clean validation. It also can't see runtime JS-expression errors, shell
+> quoting, the server's role/config gates, or whether the command actually produces the declared
+> outputs -- only running the tool does.
 
 ## Iterating & Cleanup
 
 There is no in-place update API -- every `create_user_tool` call makes a **new** tool. When you
 iterate, bump `version` (e.g. `0.1.0` -> `0.2.0`); Galaxy keeps every prior version under the user's
-account. Heavy iteration accumulates stale versions, so once a design stabilizes, offer to remove the
-superseded ones with `delete_user_tool`.
+account. Heavy iteration accumulates stale versions, so once a design stabilizes, offer to deactivate
+the superseded ones with `delete_user_tool` -- it marks the tool inactive (hidden from the toolbox),
+not a hard delete; the records remain.
+
+## Limitations
+
+UDTs deliberately can't reach several things classic tools can (per the Galaxy docs):
+
+- **No reference data** -- no built-in genome indexes or `.loc` files.
+- **No metadata files** -- e.g. a BAM index (`.bai`) isn't available; if the command needs one, build
+  it inside the `shell_command` or take it as an explicit `data` input.
+- **No `extra_files` directory** -- composite / extra-file outputs aren't supported.
+
+Design around these: pass whatever the tool needs as an explicit input, and generate any side files
+inside the container.
 
 ## Common Patterns
 
@@ -187,7 +206,7 @@ See `examples/` for seven complete, validated UDTs spanning these patterns.
 | extra-field rejection | XML-ism like `truevalue`, `command`, `${on_string}` | Remove it -- schema is `extra="forbid"` |
 | `manifest unknown` / `Unable to find image` at **run** time | Container tag doesn't exist on the registry | Use a real, verified tag (or `python:3.x-slim` for stdlib tools) -- lint can't catch this |
 | HTTP 403 "not allowed to run unprivileged" | The admin's job routing (TPV) rejects `tool_type_user_defined` by default | Not fixable client-side -- the admin must add a destination/routing rule for user-defined tools |
-| HTTP 400 on `help` | `help` sent as a bare string | Use the object form: `help: {format, content}` |
+| `help` rejected at create | `help` sent as a bare string | Use the object form: `help: {format, content}` |
 
 Full list with the why behind each: `references/common-mistakes.md`.
 

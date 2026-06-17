@@ -76,12 +76,37 @@ Every output has `name` and `type`. **A dataset output must declare `from_work_d
 | `discover_datasets` | Alternative to `from_work_dir` for pattern-matched files. |
 
 **Collection output** (`type: collection`): `collection_type` (`list`, `paired`, ...) plus
-`discover_datasets` (required). Discovery is either a `pattern` (glob with `__name_and_ext__` etc.)
-or `tool_provided_metadata`.
+`discover_datasets` (required). Discovery is either a `pattern` or `tool_provided_metadata`. The
+`UserToolSource` model does **not** default the discovery fields, so a bare `[{pattern: ...}]` fails
+validation -- a pattern entry needs all of `discover_via`, `pattern`, `directory`, `format`,
+`visible`, `recurse`, `match_relative_path`, `assign_primary_output`, `sort_key`, `sort_comp`:
+
+```yaml
+outputs:
+  - name: parts
+    type: collection
+    collection_type: list
+    discover_datasets:
+      - discover_via: pattern
+        pattern: 'part_(?P<designation>.+)\.txt'   # named groups: designation, ext, dbkey
+        directory: outdir
+        format: txt
+        visible: false
+        recurse: false
+        match_relative_path: false
+        assign_primary_output: false
+        sort_key: filename        # filename | name | designation | dbkey
+        sort_comp: lexical        # lexical | numeric
+```
+
+**Only `data` and `collection` outputs are supported.** The scalar output types present in the
+underlying model (`ToolOutputText`/`Integer`/`Float`/`Boolean`) are rejected by the UDT YAML parser
+-- don't use them.
 
 ## Requirements
 
-Prefer the top-level `container:` field for the image. The `requirements` list is for:
+Prefer the top-level `container:` field for the image -- it is required, and a `requirements:` entry
+of `type: container` does **not** satisfy it. The `requirements` list is for:
 
 ```yaml
 requirements:
