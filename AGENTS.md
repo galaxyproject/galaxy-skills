@@ -81,6 +81,20 @@ If the user asks to create, draft, or write a Galaxy workflow report template fo
   - `workflow-reports/examples/histology-staining.md` (worked example: imaging quantification)
   - `workflow-reports/examples/tissue-microarray-analysis.md` (worked example: multiplex tissue analysis)
 
+## User-Defined Tools (UDTs)
+
+If the user asks to create a tool they (a non-admin) can define and run in their own Galaxy account — the `class: GalaxyUserTool` YAML format, often created/run via Galaxy MCP `create_user_tool` / `run_user_tool` or `POST /api/unprivileged_tools` — use the udt-authoring skill. This is distinct from classic XML/ToolShed wrappers (use `tool-dev` for those).
+
+- Skill:
+  - `udt-authoring/SKILL.md`
+
+- References:
+  - `udt-authoring/references/schema-reference.md` (UserToolSource fields, input/output types, validators)
+  - `udt-authoring/references/templating.md` (`$(...)` ECMAScript, `$GALAXY_SLOTS`, escaping)
+  - `udt-authoring/references/common-mistakes.md` (pre-submit self-review checklist)
+  - `udt-authoring/scripts/validate.py` (offline validate + lint via galaxy-tool-util)
+  - `udt-authoring/examples/` (seven complete UDTs, simple to complex)
+
 ## Other skills in this repo
 
 If the user asks about one of these tasks, use the corresponding skill:
@@ -88,5 +102,6 @@ If the user asks about one of these tasks, use the corresponding skill:
 - `hub-news-posts/SKILL.md` (Galaxy Hub news posts)
 - `tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
   - `tool-dev/tool-selection-diagram/SKILL.md` (generate tool selection flowchart diagrams)
+- `udt-authoring/SKILL.md` (author User-Defined Tools — GalaxyUserTool YAML)
 
 For general discovery of what's available, start at `README.md`.
