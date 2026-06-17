@@ -1,6 +1,8 @@
 ---
 name: udt-authoring
-description: Use when authoring a Galaxy User-Defined Tool (UDT) -- a `class: GalaxyUserTool` YAML definition that wraps a container and command into a tool a non-admin user creates and runs (e.g. via Galaxy MCP create_user_tool / run_user_tool, or POST /api/unprivileged_tools). Not for classic XML/ToolShed tool wrappers.
+description: "Use when authoring a Galaxy User-Defined Tool (UDT) -- a `class: GalaxyUserTool` YAML definition that wraps a container and command into a tool a non-admin user creates and runs (e.g. via Galaxy MCP create_user_tool / run_user_tool, or POST /api/unprivileged_tools). Not for classic XML/ToolShed tool wrappers."
+metadata:
+  surfaces: [loom]
 version: 1.0.0
 tags: [galaxy, tools, udt, user-defined-tools, custom-tool]
 ---
