@@ -1,6 +1,8 @@
 ---
 name: workflow-reports
 description: Use this skill when asked to create, draft, or write a Galaxy workflow report template for the Workflow Editor's Report tab. Triggers on requests like "create a report for this workflow", "draft a workflow report template", "write a Galaxy report for workflow <id/url>".
+metadata:
+  surfaces: [loom]
 ---
 
 # Galaxy Workflow Report Templates
