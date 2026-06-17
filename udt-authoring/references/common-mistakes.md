@@ -16,6 +16,7 @@ plus a few schema-specific traps. Run through this before submitting.
 - [ ] Threads/cores use `$GALAXY_SLOTS` (+ a `resource` requirement) unless manual control is wanted.
 - [ ] Optional parameters have sensible `value` defaults.
 - [ ] Labels and description say what the tool actually does (not "Run the tool").
+- [ ] A real `help` block is present (object form `{format, content}`, no `TODO` placeholder).
 
 ## Mistakes table
 
@@ -35,6 +36,7 @@ plus a few schema-specific traps. Run through this before submitting.
 | `container: ubuntu:latest` for a bioinformatics tool | Generic image won't have the binary; not reproducible. | Use the tool's biocontainer. |
 | Invented image/tag/flags | A guessed container or CLI flag fails at runtime. | Use only images/flags you can verify; otherwise ask. |
 | Unescaped literal `$(date)` in the command | Galaxy treats `$(...)` as an expression and errors/misfires. | Escape it: `\$(date)`. |
+| `help` omitted, a bare string, or a `TODO` stub | Galaxy wants `{format, content}`; an empty/missing help leaves a documentation-free black box on the tool page. | Write a real help block: 3 short paragraphs (what / inputs+outputs / caveats). |
 
 ## Verifying a container (the #1 runtime failure)
 

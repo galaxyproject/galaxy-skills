@@ -78,7 +78,8 @@ Templating syntax (`$(inputs.x)`, arrays, `$GALAXY_SLOTS`, escaping): **`referen
    below. Lint will *not* catch a bad image; the job simply fails to pull it.
 3. **Draft the definition** using `references/schema-reference.md`. Reference each input as
    `$(inputs.name.path)` (data) or `$(inputs.name)` (scalar). Write outputs to fixed filenames and
-   claim them with `from_work_dir` / `discover_datasets`.
+   claim them with `from_work_dir` / `discover_datasets`. Always include a `help` block (convention
+   -- see "Write a help block" below).
 4. **Self-review** against `references/common-mistakes.md` (it doubles as a checklist).
 5. **Validate** (see below) and iterate on real errors.
 6. **Create + run.** Hand the validated definition to `create_user_tool`, then `run_user_tool`
@@ -101,6 +102,33 @@ on quay. Guard against it:
   switch to `python:3.11-slim` and emit SVG with the standard library, no third-party image to get
   wrong.
 - **Never invent an image, tag, or CLI flag you can't verify** -- ask the user rather than guessing.
+
+## Write a `help` block (convention)
+
+`help` is schema-optional, but **always include a real one**. Galaxy renders it under the parameter
+form on the tool page, so a UDT without help is a black box to anyone -- including the same user
+weeks later -- who opens it. The wire shape is an object, not a bare string:
+
+```yaml
+help:
+  format: markdown        # markdown | restructuredtext | plain_text
+  content: |
+    Cuts a single column from a tab-separated file.
+
+    **Inputs**
+    - `input`: TSV file (with or without header).
+    - `column`: 1-based column index.
+
+    **Outputs**
+    - `output`: TSV with only the selected column, in input row order.
+
+    Header lines are not auto-detected; the column index applies to every row.
+```
+
+Three short paragraphs is enough: what the tool does, its inputs/outputs, and any caveat (resource
+limits, expected file shape, non-obvious behavior). Don't ship a `TODO` placeholder -- an empty or
+stub `help` is no better than none. If help genuinely isn't worth writing (a one-off throwaway), say
+so and confirm with the user before creating the tool.
 
 ## Validating a Definition
 
@@ -125,6 +153,13 @@ check offline before submitting. Three tiers, weakest to strongest:
 > Those only surface when the job runs. A nonexistent container tag (`manifest unknown` at run
 > time) is the most common real-world UDT failure, so verify the image (see "Choosing a Container")
 > before relying on a clean validation.
+
+## Iterating & Cleanup
+
+There is no in-place update API -- every `create_user_tool` call makes a **new** tool. When you
+iterate, bump `version` (e.g. `0.1.0` -> `0.2.0`); Galaxy keeps every prior version under the user's
+account. Heavy iteration accumulates stale versions, so once a design stabilizes, offer to remove the
+superseded ones with `delete_user_tool`.
 
 ## Common Patterns
 
@@ -151,6 +186,8 @@ See `examples/` for seven complete, validated UDTs spanning these patterns.
 | `string_pattern_mismatch` on `id` | Uppercase, leading digit, spaces | Use `^[a-z][a-z0-9_-]*$` |
 | extra-field rejection | XML-ism like `truevalue`, `command`, `${on_string}` | Remove it -- schema is `extra="forbid"` |
 | `manifest unknown` / `Unable to find image` at **run** time | Container tag doesn't exist on the registry | Use a real, verified tag (or `python:3.x-slim` for stdlib tools) -- lint can't catch this |
+| HTTP 403 "not allowed to run unprivileged" | The admin's job routing (TPV) rejects `tool_type_user_defined` by default | Not fixable client-side -- the admin must add a destination/routing rule for user-defined tools |
+| HTTP 400 on `help` | `help` sent as a bare string | Use the object form: `help: {format, content}` |
 
 Full list with the why behind each: `references/common-mistakes.md`.
 

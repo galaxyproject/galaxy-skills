@@ -18,3 +18,10 @@ outputs:
     format: txt
     from_work_dir: out.txt
     label: Message file
+help:
+  format: markdown
+  content: |
+    Writes a user-provided message to a text file.
+
+    **Inputs** -- `message`: the text to write.
+    **Outputs** -- `out`: a text file containing the message.

@@ -18,3 +18,10 @@ outputs:
     format: txt
     from_work_dir: upper.txt
     label: Uppercased text
+help:
+  format: markdown
+  content: |
+    Converts all letters in a text file to uppercase.
+
+    **Inputs** -- `input`: a text file.
+    **Outputs** -- `output`: the same text, uppercased.

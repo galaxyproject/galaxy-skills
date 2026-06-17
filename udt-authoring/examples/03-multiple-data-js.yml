@@ -19,3 +19,10 @@ outputs:
     format_source: datasets
     from_work_dir: output.txt
     label: Concatenated output
+help:
+  format: markdown
+  content: |
+    Concatenates one or more files head-to-tail into a single file.
+
+    **Inputs** -- `datasets`: one or more files.
+    **Outputs** -- `output`: the concatenated result (datatype copied from the inputs).

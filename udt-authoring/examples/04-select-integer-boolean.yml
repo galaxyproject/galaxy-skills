@@ -32,3 +32,10 @@ outputs:
     format: txt
     from_work_dir: greetings.txt
     label: Greetings
+help:
+  format: markdown
+  content: |
+    Prints a chosen greeting a number of times, optionally with an exclamation mark.
+
+    **Inputs** -- `greeting` (Hi/Hello), `count` (1-100), `shout` (adds "!").
+    **Outputs** -- `output`: the greetings, one per line.

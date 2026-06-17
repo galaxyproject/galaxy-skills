@@ -45,3 +45,12 @@ outputs:
     format: txt
     from_work_dir: summary.txt
     label: Column summary
+help:
+  format: markdown
+  content: |
+    Reports count, mean, min, and max of one numeric column in a tabular file.
+
+    **Inputs** -- `table`: a tabular file; `column`: the column header to summarize.
+    **Outputs** -- `summary`: a small text report.
+
+    The column must match a header in the file; non-numeric/empty cells are skipped.

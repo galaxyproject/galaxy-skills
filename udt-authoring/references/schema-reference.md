@@ -21,7 +21,7 @@ rejected at parse time.** Field names below are exact.
 | `configfiles` | no | list | Files written before execution; content supports `$(...)`. |
 | `citations` | no | list | `{type: doi|bibtex|reference, content: ...}`. DOIs/bibtex are validated. |
 | `license` | no | string | SPDX identifier, e.g. `MIT`. |
-| `help` | no | string/markdown | Help text under the tool form. |
+| `help` | no (convention: yes) | object | `{format, content}`; `format` is `markdown`/`restructuredtext`/`plain_text`. Rendered under the tool form. Always include one -- see SKILL.md. |
 | `tests` | no | list | In-tool tests (inputs/outputs). |
 | `profile`, `edam_operations`, `edam_topics`, `xrefs` | no | -- | Metadata; rarely needed for a first version. |
 
