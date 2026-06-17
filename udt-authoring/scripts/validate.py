@@ -24,13 +24,15 @@ import sys
 try:
     import yaml
 except ImportError:
-    sys.exit("Missing dependency: pip install pyyaml")
+    print("Missing dependency: pip install pyyaml", file=sys.stderr)
+    sys.exit(3)
 
 try:
     from galaxy.tool_util_models import UserToolSource, format_validation_errors
     from galaxy.tool_util.lint import lint_user_tool_source
 except ImportError:
-    sys.exit("Missing dependency: pip install galaxy-tool-util")
+    print("Missing dependency: pip install galaxy-tool-util", file=sys.stderr)
+    sys.exit(3)
 
 from pydantic import ValidationError
 
@@ -40,7 +42,15 @@ def main(argv):
         sys.exit(__doc__)
 
     source = argv[1]
-    text = sys.stdin.read() if source == "-" else open(source).read()
+    try:
+        if source == "-":
+            text = sys.stdin.read()
+        else:
+            with open(source) as fh:
+                text = fh.read()
+    except OSError as exc:
+        print(f"Cannot read {source}: {exc}", file=sys.stderr)
+        return 3
     data = yaml.safe_load(text)
 
     try:
