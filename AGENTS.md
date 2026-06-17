@@ -77,7 +77,7 @@ If the user asks to create, draft, or write a Galaxy workflow report template fo
   - `workflow-reports/SKILL.md` (single self-contained skill)
 
 - References:
-  - `workflow-reports/references/directives.md` (Galaxy markdown directive reference)
+  - `workflow-reports/references/directives.md` (Galaxy markdown directive reference, synced from upstream Galaxy via `make sync-directives`)
   - `workflow-reports/examples/histology-staining.md` (worked example: imaging quantification)
   - `workflow-reports/examples/tissue-microarray-analysis.md` (worked example: multiplex tissue analysis)
 
@@ -94,6 +94,18 @@ If the user asks to create a tool they (a non-admin) can define and run in their
   - `udt-authoring/references/common-mistakes.md` (pre-submit self-review checklist)
   - `udt-authoring/scripts/validate.py` (offline validate + lint via galaxy-tool-util)
   - `udt-authoring/examples/` (seven complete UDTs, simple to complex)
+
+## Reproduciblify
+
+If the user asks to "reproduciblify" a Galaxy history, rebuild a messy analysis on-graph, or turn a history into a clean Galaxy Notebook that extracts into a reusable workflow:
+
+- Skill:
+  - `reproduciblify/SKILL.md` (single self-contained skill)
+
+- References:
+  - `reproduciblify/references/directives.yml` (machine-readable Galaxy markdown directive metadata, synced from upstream Galaxy via `make sync-directives`)
+
+Depends on `galaxy-integration` (MCP access), `collection-manipulation` (map/reduce restructuring), `tool-dev` (creating tools as a fallback), and `workflow-reports` (markdown directives for embedding on-graph artifacts).
 
 ## Other skills in this repo
 
