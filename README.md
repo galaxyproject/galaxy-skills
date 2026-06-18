@@ -86,6 +86,15 @@ Create and update Galaxy tool wrappers.
 - **references/** - Standalone testing and tool placement guides (also used by other skills)
 - **tool-selection-diagram/** - Generate "which tool?" flowchart PNGs for multi-tool suites
 
+**udt-authoring** ✅
+
+Author Galaxy User-Defined Tools (UDTs) — the `class: GalaxyUserTool` YAML format a non-admin user creates and runs (distinct from classic XML/ToolShed wrappers).
+
+- SKILL.md with the authoring loop and offline/server validation tiers
+- **references/** - UserToolSource schema, `$(...)` templating, common mistakes checklist
+- **scripts/validate.py** - offline validate + lint via galaxy-tool-util
+- **examples/** - seven complete UDTs, simple to complex
+
 ### Content
 
 **hub-news-posts** ✅
@@ -155,6 +164,12 @@ skills/
 │   ├── SKILL.md                # Comprehensive tool dev reference
 │   ├── references/             # Testing, tool placement guides
 │   └── tool-selection-diagram/ # Flowchart diagram generator for multi-tool suites
+│
+├── udt-authoring/               # ✅ Author User-Defined Tools (GalaxyUserTool YAML)
+│   ├── SKILL.md                 # Authoring loop + validation tiers
+│   ├── references/              # Schema, templating, common mistakes
+│   ├── scripts/                 # validate.py (offline validate + lint)
+│   └── examples/                # Seven complete UDTs
 │
 ├── hub-news-posts/              # ✅ Galaxy Hub posts
 │
