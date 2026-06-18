@@ -163,7 +163,7 @@ One directive per fenced block. Never stack multiple directives in one block. Th
 
 Quotes are required when the value contains spaces.
 
-See `references/directives.md` for the full directive reference.
+See `references/directives.md` for the full directive reference (synced from upstream Galaxy via `make sync-directives`).
 
 ---
 
