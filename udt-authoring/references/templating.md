@@ -57,6 +57,24 @@ shell_command: |
 Use `$GALAXY_SLOTS` for "however many cores the job got" -- this is usually what a user means by
 "number of threads." Expose an `integer` input only when the user needs explicit manual control.
 
+**Pass it as the flag's value -- recording it is not using it.** The parallelism flag's argument
+must *be* `$GALAXY_SLOTS` (`--threads $GALAXY_SLOTS`, `-@ $GALAXY_SLOTS`, `-p $GALAXY_SLOTS`).
+Echoing it to a log, or storing it in a variable you never pass through, does nothing for
+parallelism -- a command that prints `$GALAXY_SLOTS` "for debugging" but still runs `--threads 8`
+is hardcoded and ignores the real allocation. Wiring it through and logging it are independent: do
+the first; the second is optional.
+
+```yaml
+# WRONG -- "aware" of the allocation, but the flag is still hardcoded
+shell_command: |
+  echo "cores: $GALAXY_SLOTS"             # recorded...
+  samtools sort -@ 8 -o out.bam in.bam    # ...but ignored -- only 8 threads regardless
+
+# RIGHT -- the flag's value IS the allocation
+shell_command: |
+  samtools sort -@ $GALAXY_SLOTS -o out.bam in.bam
+```
+
 ## Escaping: literal shell `$(...)` must be `\$(...)`
 
 Galaxy intercepts `$(...)` as a JavaScript expression. If you need a **literal shell command

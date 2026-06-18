@@ -13,7 +13,7 @@ plus a few schema-specific traps. Run through this before submitting.
 - [ ] `id` matches `^[a-z][a-z0-9_-]*$`; `name` is at least 5 characters.
 - [ ] No rejected fields: `truevalue`, `falsevalue`, `argument`, `parameter_type`, `${on_string}`, `${tool.name}`.
 - [ ] Booleans become flags via a ternary, not `truevalue`/`falsevalue`.
-- [ ] Threads/cores use `$GALAXY_SLOTS` (+ a `resource` requirement) unless manual control is wanted.
+- [ ] The parallelism flag's **value** is `$GALAXY_SLOTS` (+ a `resource` requirement), not a hardcoded number -- and not merely echoed to a log while the flag stays a literal.
 - [ ] Optional parameters have sensible `value` defaults.
 - [ ] Labels and description say what the tool actually does (not "Run the tool").
 - [ ] A real `help` block is present (object form `{format, content}`, no `TODO` placeholder).
@@ -33,7 +33,7 @@ plus a few schema-specific traps. Run through this before submitting.
 | `truevalue: --x` / `falsevalue: ""` on a boolean | XML-only fields, rejected. | `value: false` + `$(inputs.x ? '--x' : '')` in the command. |
 | `${on_string}`, `${tool.name}` in labels | Cheetah macros; not supported. | Use a plain string label, or `format_source` to inherit. |
 | `id: My_Tool` / `id: 2pass` | Must be lowercase and start with a letter (`string_pattern_mismatch`). | `id: my-tool`, `id: two-pass`. |
-| Hardcoded `--threads 8` | Ignores the job's real allocation. | `--threads $GALAXY_SLOTS` + `resource` `cores_min`. |
+| Hardcoded `--threads 8` -- even while echoing `$GALAXY_SLOTS` elsewhere | Ignores the job's real allocation; recording the value isn't using it. | Make the flag's value `$GALAXY_SLOTS` (`--threads $GALAXY_SLOTS`) + `resource` `cores_min`. |
 | `container: ubuntu:latest` for a bioinformatics tool | Generic image won't have the binary; not reproducible. | Use the tool's biocontainer. |
 | Invented image/tag/flags | A guessed container or CLI flag fails at runtime. | Use only images/flags you can verify; otherwise ask. |
 | Unescaped literal `$(date)` in the command | Galaxy treats `$(...)` as an expression and errors/misfires. | Escape it: `\$(date)`. |
