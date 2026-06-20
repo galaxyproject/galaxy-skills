@@ -120,4 +120,5 @@ get_history_contents(history_id="...", limit=100, offset=100, order="hid-dsc")
 ## See Also
 
 - `history-access.md` - Detailed history/dataset access patterns
+- `name-tags.md` - Name tags (`#tag`) for tracking workflow runs in a history
 - `gotchas.md` - Common pitfalls and solutions
