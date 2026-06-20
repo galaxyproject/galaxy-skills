@@ -139,6 +139,13 @@ Add or update ToolShed tool revisions in the [usegalaxy-tools](https://github.co
 - Handle adds, updates, moves, and removals across sections
 - Lint with `fix_lockfile.py`
 
+**tool-install-yaml** ✅
+
+Construct tool-install ("`tool_list`") request YAML for ephemeris `shed-tools` and usegalaxy-tools.
+
+- Lightweight SKILL.md routing creation / workflow-extract / server-export / curation modes
+- **references/** - Synced white paper (schema, tooling, panel placement, manifest/lock pattern)
+
 ### Collection Manipulation
 
 **collection-manipulation** ✅
@@ -182,6 +189,10 @@ skills/
 ├── update-usegalaxy-tool/       # ✅ UseGalaxy tool management
 │   ├── SKILL.md                 # Main command (add/update ToolShed revisions)
 │   └── references/              # YAML file formats, ToolShed API, lint script
+│
+├── tool-install-yaml/           # ✅ Construct tool-install request YAML
+│   ├── SKILL.md                 # Lightweight router (create/extract/export/curate)
+│   └── references/              # Synced tool-install YAML white paper
 │
 └── collection-manipulation/     # ✅ Collection transformations
     ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
