@@ -27,7 +27,7 @@ Follow the planning/approval checkpoints required by the skills before implement
 
 ## Galaxy Integration
 
-If the user asks about Galaxy MCP, JupyterLite notebooks, or BioBlend automation:
+If the user asks about Galaxy MCP, JupyterLite notebooks, BioBlend automation, or parsec CLI:
 
 - Router:
   - `galaxy-integration/SKILL.md`
@@ -35,6 +35,7 @@ If the user asks about Galaxy MCP, JupyterLite notebooks, or BioBlend automation
 - Sub-skills:
   - `galaxy-integration/jupyterlite/SKILL.md` (JupyterLite notebooks with gxy package)
   - `galaxy-integration/mcp-reference/SKILL.md` (Galaxy MCP tools reference)
+  - `galaxy-integration/parsec/SKILL.md` (parsec CLI for shell scripting / jq pipelines)
 
 - References:
   - `galaxy-integration/mcp-reference/history-access.md` (history/dataset access patterns)
