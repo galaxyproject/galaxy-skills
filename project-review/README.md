@@ -1,16 +1,21 @@
 # Project Review Skill
 
-Claude Code skill for reviewing Galaxy Project repositories against a profile of best-practice expectations and producing a short, one-line-per-criterion report.
+Agent skill for reviewing or hardening Galaxy Project repositories against a profile of
+best-practice expectations.
 
 ## Quick Start
 
-Point Claude at a repo: *"Review planemo against project best practices"* or *"project review for galaxyproject/gxformat2"*.
+Point an agent at a repository: *"Review planemo against project best practices"*,
+*"project review for galaxyproject/gxformat2"*, or *"harden these GitHub Actions"*.
 
-Claude picks a profile, assesses each criterion, and emits one row per line — verdict (pass / needs work / n/a) plus a terse justification citing the relevant file or workflow.
+The agent inventories the project, runs available checks, reviews trust boundaries, and emits
+one row per criterion with a verdict and cited evidence. When implementation is requested, it
+makes the smallest coherent change and validates the result.
 
 ## Profiles
 
-- **General** — any project. README, MIT license, GitHub Actions (zizmor-clean), and trusted publishing for projects that publish artifacts.
+- **General** — any project. README, license, CI coverage, GitHub Actions (zizmor plus manual
+  trust-boundary review), and trusted publishing for projects that publish artifacts.
 - **Standard Python** — General plus mypy-in-CI and Sphinx docs. Applies to `pulsar`, `planemo`, `gxformat2`, `ephemeris`.
 
 The Python profile is a superset of General; pick the most specific one that fits.
@@ -18,7 +23,10 @@ The Python profile is a superset of General; pick the most specific one that fit
 ## Files
 
 - `SKILL.md` — the profiles and review criteria.
-- `references/github-actions.md` — how the GitHub Actions line is checked with [zizmor](https://docs.zizmor.sh/), with `galaxyproject/galaxy#22827` as the exemplar.
+- `references/github-actions.md` — how to combine
+  [zizmor](https://docs.zizmor.sh/) with action-ref policy, least privilege, job-boundary,
+  trigger, credential, maintenance, and publishing review. It incorporates lessons from
+  `galaxyproject/galaxy#22827` and `galaxyproject/gxformat2#223`.
 
 ## Installation
 
