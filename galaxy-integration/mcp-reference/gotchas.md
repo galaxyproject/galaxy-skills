@@ -69,11 +69,24 @@ invoke_workflow(
 - `hdca` = HistoryDatasetCollectionAssociation (collection)
 - `ldda` = LibraryDatasetDatasetAssociation
 
-## Optional Parameter Inputs Must Be Explicit
+## Parameter Inputs Must Be Explicit Scalars
+
+Pass `parameter_input` step values as **scalars directly** in the `inputs` map. Two distinct failure modes bite API/MCP users here — one from omitting the value, one from wrapping it.
+
+### Failure mode 1: omitting the step
 
 **Problem**: Omitting an optional `parameter_input` step from the `inputs` dict causes downstream tools to receive an unresolved `ConnectedValue` placeholder, producing command lines with literal garbage like `'Xgalaxy.tools.parameters.workflow_utils.ConnectedValue object at 0x...X'` and tool failures with cryptic exit codes.
 
-**Solution**: Always pass an explicit value for **every** `parameter_input` step in the workflow, even ones marked `optional: true`. Use `""` for empty text, `null` for empty data inputs:
+### Failure mode 2: wrapping the value
+
+**Problem**: Wrapping a `parameter_input` value in an object such as `{"parameter_value": ""}` is **not** unwrapped — the wrapper object gets stringified and passed to the downstream tool verbatim. With IWC `rnaseq-pe`, wrapping the fastp adapter inputs makes fastp receive an invalid adapter sequence and fail:
+
+```
+ERROR: the adapter <adapter_sequence> can only have bases in {A, T, C, G},
+but the given sequence is: XXparameter_valueX: XXX
+```
+
+**Solution**: Always pass an explicit **scalar** value for **every** `parameter_input` step, even ones marked `optional: true`. Use `""` for empty text, `null` for empty data inputs. Do **not** omit them, and do **not** wrap them in `{"parameter_value": ...}`:
 
 ```python
 # WRONG - inputs 1 and 2 (optional adapter sequences) omitted
@@ -84,7 +97,15 @@ inputs = {
     # ...
 }
 
-# CORRECT - explicit empty strings for optional text params
+# ALSO WRONG - wrapped in {"parameter_value": ...}; the wrapper is stringified
+inputs = {
+    "0": {"src": "hdca", "id": collection_id},
+    "1": {"parameter_value": ""},     # becomes literal garbage downstream
+    "2": {"parameter_value": ""},
+    # ...
+}
+
+# CORRECT - explicit scalar empty strings for optional text params
 inputs = {
     "0": {"src": "hdca", "id": collection_id},
     "1": "",                          # Forward adapter (optional)
@@ -95,9 +116,29 @@ inputs = {
 }
 ```
 
-**How to verify before invoking**: call `get_workflow_details(workflow_id)` and check the `inputs` dict — every numeric key (step index) of type `parameter_input` needs a corresponding entry in your `inputs`, regardless of `optional` status.
+Data inputs (`hda`/`hdca`/`ldda`) use the `{"src": ..., "id": ...}` form; `parameter_input` steps take a bare scalar. A full IWC `rnaseq-pe` invocation with `inputs_by="step_index"`:
 
-**How to diagnose after failure**: if a tool fails with no obvious stderr cause, fetch `get_job_details(dataset_id)` and inspect `command_line` for the string `ConnectedValue object at 0x`. That signature confirms the omitted-optional-input bug.
+```json
+{
+  "inputs": {
+    "0": { "src": "hdca", "id": "<list_paired_collection_id>" },
+    "1": "",
+    "2": "",
+    "3": true,
+    "4": "GCA_002759435.3",
+    "5": { "src": "hda", "id": "<gtf_dataset_id>" },
+    "6": "stranded - reverse",
+    "7": true,
+    "8": false,
+    "10": false
+  },
+  "inputs_by": "step_index"
+}
+```
+
+**How to verify before invoking**: call `get_workflow_details(workflow_id)` and check the `inputs` dict — every numeric key (step index) of type `parameter_input` needs a corresponding scalar entry in your `inputs`, regardless of `optional` status.
+
+**How to diagnose after failure**: if a tool fails with no obvious stderr cause, fetch `get_job_details(dataset_id)` and inspect `command_line`. The string `ConnectedValue object at 0x` confirms an omitted input; a stringified wrapper like `parameter_value` in the value (e.g. fastp's `the given sequence is: XXparameter_valueX`) confirms a wrapped input.
 
 ## Connection Issues
 
