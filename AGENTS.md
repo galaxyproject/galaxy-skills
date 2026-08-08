@@ -69,6 +69,22 @@ If the user asks to add or update a ToolShed tool revision in the usegalaxy-tool
 - References:
   - `update-usegalaxy-tool/references/file-formats.md` (usegalaxy-tools YAML file formats, ToolShed API, lint script)
 
+## Tool-Install YAML
+
+If the user asks to construct, write, or fix a Galaxy tool-install ("`tool_list`") request YAML —
+the ephemeris/`shed-tools` file naming which Tool Shed repositories to install and their tool-panel
+placement (including authoring a new `usegalaxy-tools` section `.yml`, or extracting tools from a
+`.ga` workflow):
+
+- Skill:
+  - `tool-install-yaml/SKILL.md` (lightweight router)
+
+- References:
+  - `tool-install-yaml/references/tool-install-yaml.md` (synced white paper: schema, ephemeris tooling, panel placement, manifest/lock pattern, field quick-card)
+
+Note the distinction: `tool-install-yaml` *authors* the install YAML; `update-usegalaxy-tool` bumps
+revisions in an existing usegalaxy-tools checkout; `tool-dev` writes a single tool's wrapper XML.
+
 ## Workflow Reports
 
 If the user asks to create, draft, or write a Galaxy workflow report template for the Workflow Editor's Report tab:
