@@ -51,7 +51,7 @@ If you find yourself writing `command:`, `$param`, `#for#`, `truevalue:`, or `${
 ```yaml
 class: GalaxyUserTool          # required, exactly this
 id: my-tool                    # lowercase, ^[a-z][a-z0-9_-]*$, 3-255 chars (recommended)
-version: "0.1.0"               # recommended
+version: "0.1.0"               # recommended; must be PEP 440 or create is refused
 name: My Tool                  # required, min 5 chars
 description: One line shown in the tool menu
 container: quay.io/biocontainers/seqkit:2.8.2--h9ee0642_0   # required STRING, a real image
@@ -166,7 +166,11 @@ check offline before submitting. Three tiers, weakest to strongest:
 
 There is no in-place update API -- every `create_user_tool` call makes a **new** tool. When you
 iterate, bump `version` (e.g. `0.1.0` -> `0.2.0`); Galaxy keeps every prior version under the user's
-account. Heavy iteration accumulates stale versions, so once a design stabilizes, offer to deactivate
+account. **Keep the bumped version PEP 440**: create is refused with
+`400 Tool failed lint checks: ToolVersionPEP404` for anything else, so a descriptive scratch version
+like `0.1.0-probe` fails while `0.1.0.dev1` or `0.1.0+probe1` works. This is the moment the mistake
+happens, because a name is the natural thing to type for a throwaway -- see
+`references/schema-reference.md`. Heavy iteration accumulates stale versions, so once a design stabilizes, offer to deactivate
 the superseded ones with `delete_user_tool` -- it marks the tool inactive (hidden from the toolbox),
 not a hard delete; the records remain.
 

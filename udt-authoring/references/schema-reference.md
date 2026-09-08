@@ -135,3 +135,28 @@ Beyond type/shape checks, `UserToolSource` runs these. Error `code`s are stable 
 
 `id` violations surface as Pydantic's `string_pattern_mismatch`; a too-short `name` as
 `string_too_short`.
+
+### The schema is not the whole gate: create also runs tool lint
+
+Passing `UserToolSource` is necessary and not sufficient. `create` lints the tool as well and
+**refuses on a lint finding**, answering `400 Tool failed lint checks: <LinterName>`. The one that
+catches people is the version:
+
+```
+400 {"err_msg":"Tool failed lint checks: ToolVersionPEP404: Tool version [0.1.0-probe]
+     is not compliant with PEP 440.","err_code":400008}
+```
+
+Two things make this worth knowing in advance. The rule is not in the table above, so a
+schema-clean definition can still be rejected; and Galaxy's own linter records it with
+`lint_ctx.warn` (`galaxy/tool_util/linters/general.py::ToolVersionPEP404`), so every habit around
+linters says it is advisory -- while for a user-defined tool it is fatal. The error names a linter
+class rather than the field, which does not point at the version string you just typed.
+
+Use a release (`0.2.0`), a dev release (`0.1.0.dev1`) or a local version (`0.1.0+probe1`) --
+PEP 440's only legal `-x` is `-<digits>` (an implicit post-release), so `0.1.0-1` is valid and
+`-probe` is not a version at all. This matters most for a **throwaway** registration, since there
+is no update: every create makes a new tool, so a scratch version gets invented precisely when a
+name is the natural thing to type.
+
+`scripts/validate.py` runs the same lint and exits 2 on findings, so it catches this offline.

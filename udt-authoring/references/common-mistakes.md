@@ -11,6 +11,7 @@ plus a few schema-specific traps. Run through this before submitting.
 - [ ] Every output has **`from_work_dir`** or **`discover_datasets`** (collections: `discover_datasets`).
 - [ ] Every `$(inputs.X)` reference has a matching declared input named `X`.
 - [ ] `id` matches `^[a-z][a-z0-9_-]*$`; `name` is at least 5 characters.
+- [ ] `version` is **PEP 440** (`0.2.0`, `0.1.0.dev1`, `0.1.0+probe1`) -- a bare `-suffix` like `0.1.0-probe` is not, and create is refused.
 - [ ] No rejected fields: `truevalue`, `falsevalue`, `argument`, `parameter_type`, `${on_string}`, `${tool.name}`.
 - [ ] Booleans become flags via a ternary, not `truevalue`/`falsevalue`.
 - [ ] The parallelism flag's **value** is `$GALAXY_SLOTS` (+ a `resource` requirement), not a hardcoded number -- and not merely echoed to a log while the flag stays a literal.
@@ -33,6 +34,7 @@ plus a few schema-specific traps. Run through this before submitting.
 | `truevalue: --x` / `falsevalue: ""` on a boolean | XML-only fields, rejected. | `value: false` + `$(inputs.x ? '--x' : '')` in the command. |
 | `${on_string}`, `${tool.name}` in labels | Cheetah macros; not supported. | Use a plain string label, or `format_source` to inherit. |
 | `id: My_Tool` / `id: 2pass` | Must be lowercase and start with a letter (`string_pattern_mismatch`). | `id: my-tool`, `id: two-pass`. |
+| `version: "0.1.0-probe"` (or any non-PEP-440 string) | Create is **refused**: `400 Tool failed lint checks: ToolVersionPEP404`. Galaxy's linter records this as a *warning*, so nothing about it reads as fatal -- but a lint finding rejects the create, and the error names a linter class rather than the field. Most likely when inventing a version for a throwaway registration. | A release (`0.2.0`), a dev release (`0.1.0.dev1`) or a local version (`0.1.0+probe1`). PEP 440's only legal `-x` is `-<digits>`, an implicit post-release, so `0.1.0-1` works and `-probe` is not a version at all. `scripts/validate.py` catches it (exit 2). |
 | Hardcoded `--threads 8` -- even while echoing `$GALAXY_SLOTS` elsewhere | Ignores the job's real allocation; recording the value isn't using it. | Make the flag's value `$GALAXY_SLOTS` (`--threads $GALAXY_SLOTS`) + `resource` `cores_min`. |
 | `container: ubuntu:latest` for a bioinformatics tool | Generic image won't have the binary; not reproducible. | Use the tool's biocontainer. |
 | Invented image/tag/flags | A guessed container or CLI flag fails at runtime. | Use only images/flags you can verify; otherwise ask. |
