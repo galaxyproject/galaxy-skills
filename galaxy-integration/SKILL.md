@@ -1,6 +1,6 @@
 ---
 name: galaxy-integration
-description: Router for Galaxy MCP, JupyterLite notebooks, and BioBlend automation
+description: Router for Galaxy MCP, JupyterLite notebooks, BioBlend automation, and parsec CLI scripting
 user_invocable: true
 ---
 
@@ -21,6 +21,7 @@ Route to the appropriate sub-skill based on task:
 | BioBlend batch scripts | - | `scripts/galaxy_tool_checker.py` |
 | Tool checking examples | - | `examples/tool-checking.md` |
 | Workflow testing examples | - | `examples/workflow-testing.md` |
+| Shell scripting / jq pipelines / CLI automation | `parsec` | `parsec/SKILL.md` |
 
 ## When to Use
 
@@ -62,8 +63,13 @@ GALAXY_API_KEY=your_actual_api_key_here
 - Interactive exploration (find a tool, inspect exact tool IDs)
 - Debugging a workflow with fast iteration
 
+**parsec CLI** (`parsec/SKILL.md`) when:
+- Shell scripting, reproducible commands, jq pipelines
+- No MCP runtime available
+- User wants a command they can save, share, or run in CI
+
 **BioBlend script** (`scripts/galaxy_tool_checker.py`) when:
-- Batch checks across many tools
+- Bulk tool validation across many tools
 - Repeatable validation/testing as part of CI-like flow
 
 ## Core MCP Workflow
