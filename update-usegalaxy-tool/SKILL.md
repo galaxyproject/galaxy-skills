@@ -1,7 +1,7 @@
 ---
 name: update-usegalaxy-tool
 description: Add/update a ToolShed tool revision in usegalaxy-tools repo
-argument-hint: [tool-name] [owner] [version] [sections]
+argument-hint: "[tool-name] [owner] [version] [sections]"
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep
 ---

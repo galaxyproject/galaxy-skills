@@ -33,21 +33,49 @@ Use both together for best results.
 
 ## Installation & Usage
 
-### Claude Code (Native Support)
-
-Skills are automatically available. Just clone this repo into your workspace or add to `.claude/skills/`:
+### Claude Code (Plugin -- Recommended)
 
 ```bash
-# Personal skills (available in all projects)
-cd ~/.claude/skills
-git clone https://github.com/galaxyproject/skills galaxy
+# Add the Galaxy Project marketplace
+/plugin marketplace add galaxyproject/galaxy-skills
 
-# Project skills (specific to one project)
-cd your-project/.claude/skills
-git clone https://github.com/galaxyproject/skills galaxy
+# Install the plugin
+/plugin install galaxy@galaxyproject
 ```
 
-Claude will automatically discover and use skills when relevant.
+This installs the skills *and* wires up the
+[galaxy-mcp](https://github.com/galaxyproject/galaxy-mcp) server, so the agent can work against a
+live Galaxy instance -- create histories, upload data, run tools, invoke workflows.
+
+#### Connecting to a Galaxy instance
+
+The MCP server launches through `uvx`, so you need [uv](https://docs.astral.sh/uv/) installed.
+Point it at an instance and give it a key:
+
+```bash
+export GALAXY_URL=https://usegalaxy.org   # this is the default if unset
+export GALAXY_API_KEY=your_api_key        # User -> Preferences -> Manage API Key
+```
+
+A `.env` file in your working directory works too. Without a key the plugin still installs and the
+skills still load -- only the live-instance tools fail, and you can supply credentials at runtime
+with `connect(url, api_key)`.
+
+The first launch downloads the server and its dependencies, which can take long enough that Claude
+Code reports the MCP server as failed. Run `uvx galaxy-mcp --version` once to warm the cache, or
+`uv tool install galaxy-mcp` to install it outright.
+
+The server exposes 38 tools. To trim what sits in context, set `GALAXY_MCP_EXCLUDE_TAGS` (for
+example `niche` drops the five IWC workflow-discovery tools) or `GALAXY_MCP_INCLUDE_TAGS`.
+
+### Claude Code (Manual)
+
+Clone into your skills directory if you prefer not to use the plugin system:
+
+```bash
+cd ~/.claude/skills
+git clone https://github.com/galaxyproject/galaxy-skills galaxy
+```
 
 ### Windsurf / Cursor / Aider (via openskills)
 
@@ -56,7 +84,7 @@ Claude will automatically discover and use skills when relevant.
 npm i -g openskills
 
 # Install Galaxy skills
-openskills install galaxyproject/skills
+openskills install galaxyproject/galaxy-skills
 
 # Load a specific skill when needed
 openskills read tool-updates
@@ -67,7 +95,7 @@ openskills read tool-updates
 Clone this repo into your workspace and reference skills in your prompts:
 
 ```bash
-git clone https://github.com/galaxyproject/skills
+git clone https://github.com/galaxyproject/galaxy-skills
 ```
 
 The LLM can read skill files directly from the workspace.

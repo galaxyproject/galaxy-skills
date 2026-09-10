@@ -1,0 +1,20 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "galaxyproject",
+  "owner": {
+    "name": "Galaxy Project",
+    "email": "galaxy-committers@lists.galaxyproject.org"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for the Galaxy Project",
+    "version": "0.2.0"
+  },
+  "plugins": [
+    {
+      "name": "galaxy",
+      "source": ".",
+      "description": "Drive Galaxy from your agent -- MCP connection plus skills for tools, workflows, and collections",
+      "version": "0.2.0"
+    }
+  ]
+}

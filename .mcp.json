@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "galaxy": {
+      "command": "uvx",
+      "args": ["galaxy-mcp"],
+      "env": {
+        "GALAXY_URL": "${GALAXY_URL:-https://usegalaxy.org}",
+        "GALAXY_API_KEY": "${GALAXY_API_KEY}"
+      }
+    }
+  }
+}

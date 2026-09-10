@@ -1,6 +1,18 @@
 # Agent Instructions (galaxyproject/skills)
 
-When working in this repository, treat the contents of `skills/` as the canonical source of “skills” and follow them as process guidance.
+When working in this repository, treat the skill directories at the repo root -- each holding a
+`SKILL.md` -- as the canonical source of “skills” and follow them as process guidance. There is no
+`skills/` subdirectory; `tool-dev/`, `nf-to-galaxy/`, `collection-manipulation/` and the rest sit
+directly at the top level.
+
+## Working against a live Galaxy instance
+
+Driving a real Galaxy server (histories, uploads, running tools, invoking workflows) goes through
+the [galaxy-mcp](https://github.com/galaxyproject/galaxy-mcp) MCP server, which any MCP-capable
+agent can connect to. It needs `GALAXY_URL` and `GALAXY_API_KEY`. The tool surface is documented in
+`galaxy-integration/mcp-reference/SKILL.md` -- read that before calling any Galaxy MCP tool. It
+names the operations; match them to whatever your client exposes, since tool-naming differs
+between MCP clients.
 
 ## Nextflow → Galaxy conversions
 
@@ -115,5 +127,6 @@ If the user asks about one of these tasks, use the corresponding skill:
 - `tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
   - `tool-dev/tool-selection-diagram/SKILL.md` (generate tool selection flowchart diagrams)
 - `udt-authoring/SKILL.md` (author User-Defined Tools — GalaxyUserTool YAML)
+- `trackhubs/SKILL.md` (UCSC Track Hub / Assembly Hub publishing)
 
 For general discovery of what's available, start at `README.md`.
