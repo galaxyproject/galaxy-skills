@@ -1,6 +1,6 @@
 ---
 name: update-usegalaxy-tool
-description: Add/update a ToolShed tool revision in usegalaxy-tools repo
+description: "Add or update a ToolShed tool revision in the usegalaxy-tools repository -- resolving changeset revisions, editing .yml and .yml.lock toolset files, and handling adds, updates, moves, and removals across sections."
 argument-hint: "[tool-name] [owner] [version] [sections]"
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep

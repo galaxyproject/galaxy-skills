@@ -101,12 +101,12 @@ Place your skill in the appropriate category:
 
 | Skill Family | Purpose | Examples |
 |--------------|---------|----------|
-| `tool-dev/` | Galaxy tool development (creation + updates) | references/ |
-| `hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
-| `nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
-| `galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
-| `collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
-| `trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
+| `skills/tool-dev/` | Galaxy tool development (creation + updates) | references/ |
+| `skills/hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
+| `skills/nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
+| `skills/galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
+| `skills/collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
+| `skills/trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
 
 ---
 

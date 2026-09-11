@@ -152,7 +152,7 @@ Convert Nextflow processes and workflows to Galaxy tools and workflows.
 Interact with Galaxy instances via MCP, JupyterLite, or BioBlend.
 
 - **jupyterlite/** - Write notebooks using gxy package
-- **mcp-reference/** - Complete MCP tools reference
+- **galaxy-mcp-reference** (now its own skill) - Complete MCP tools reference
 - Tool checking and workflow testing examples
 - BioBlend automation scripts
 
@@ -183,38 +183,34 @@ Transform Galaxy dataset collections reproducibly using native tools.
 ## Repository Structure
 
 ```
-skills/
-├── README.md                    # This file
+galaxy-skills/
+├── plugin.json                  # Plugin manifest (Antigravity reads this)
+├── .claude-plugin/
+│   ├── plugin.json              # Plugin manifest (Claude Code, Codex)
+│   └── marketplace.json         # Marketplace manifest
+├── .mcp.json                    # galaxy-mcp server config
+├── AGENTS.md                    # Cross-agent routing instructions
 ├── CONTRIBUTING.md              # How to add new skills
-├── AGENTS.md                    # Agent routing instructions
 │
-├── tool-dev/                    # ✅ Galaxy tool development
-│   ├── SKILL.md                # Comprehensive tool dev reference
-│   ├── references/             # Testing, tool placement guides
-│   └── tool-selection-diagram/ # Flowchart diagram generator for multi-tool suites
-│
-├── udt-authoring/               # ✅ Author User-Defined Tools (GalaxyUserTool YAML)
-│   ├── SKILL.md                 # Authoring loop + validation tiers
-│   ├── references/              # Schema, templating, common mistakes
-│   ├── scripts/                 # validate.py (offline validate + lint)
-│   └── examples/                # Seven complete UDTs
-│
-├── hub-news-posts/              # ✅ Galaxy Hub posts
-│
-├── nf-to-galaxy/                # ✅ Nextflow → Galaxy conversion
-│
-├── galaxy-integration/          # ✅ Galaxy instance integration
-│   ├── jupyterlite/             # JupyterLite notebooks (gxy package)
-│   └── mcp-reference/           # MCP tools reference
-│
-├── update-usegalaxy-tool/       # ✅ UseGalaxy tool management
-│   ├── SKILL.md                 # Main command (add/update ToolShed revisions)
-│   └── references/              # YAML file formats, ToolShed API, lint script
-│
-└── collection-manipulation/     # ✅ Collection transformations
-    ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
-    └── references/              # Tools catalog, Apply Rules DSL, API, tests
+└── skills/
+    ├── tool-dev/                    # Galaxy tool development
+    │   ├── references/              # Testing, tool placement guides
+    │   └── tool-selection-diagram/  # Flowchart generator for multi-tool suites
+    ├── udt-authoring/               # User-Defined Tools (GalaxyUserTool YAML)
+    ├── nf-to-galaxy/                # Nextflow → Galaxy conversion
+    ├── galaxy-integration/          # Instance integration router
+    │   └── jupyterlite/             # JupyterLite notebooks (gxy package)
+    ├── galaxy-mcp-reference/        # Galaxy MCP tool reference
+    ├── collection-manipulation/     # Collection transformations
+    ├── workflow-reports/            # Workflow report templates
+    ├── reproduciblify/              # Turn ad-hoc analysis into a workflow
+    ├── trackhubs/                   # UCSC Track Hub / Assembly Hub publishing
+    ├── update-usegalaxy-tool/       # UseGalaxy tool management
+    └── hub-news-posts/              # Galaxy Hub news posts
 ```
+
+Skills live under `skills/` because that is the layout every major agent harness discovers
+by convention -- Claude Code, Codex, and Antigravity all read it without extra configuration.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: galaxy-integration
-description: Router for Galaxy MCP, JupyterLite notebooks, and BioBlend automation
+description: "Use when setting up or choosing how an agent talks to a Galaxy instance -- first-time connection (server URL, API key, verifying access), then picking between Galaxy MCP for interactive work, JupyterLite notebooks for analysis against Galaxy datasets, and BioBlend scripts for batch or CI. Start here to use Galaxy when not yet connected."
 user_invocable: true
 ---
 
@@ -15,9 +15,9 @@ Route to the appropriate sub-skill based on task:
 | Task | Sub-Skill | Location |
 |------|-----------|----------|
 | Write JupyterLite notebook | `jupyterlite-galaxy` | `jupyterlite/SKILL.md` |
-| MCP tools reference | `galaxy-mcp-reference` | `mcp-reference/SKILL.md` |
-| History/dataset access | - | `mcp-reference/history-access.md` |
-| Common gotchas | - | `mcp-reference/gotchas.md` |
+| MCP tools reference | `galaxy-mcp-reference` | `../galaxy-mcp-reference/SKILL.md` |
+| History/dataset access | - | `../galaxy-mcp-reference/history-access.md` |
+| Common gotchas | - | `../galaxy-mcp-reference/gotchas.md` |
 | BioBlend batch scripts | - | `scripts/galaxy_tool_checker.py` |
 | Tool checking examples | - | `examples/tool-checking.md` |
 | Workflow testing examples | - | `examples/workflow-testing.md` |

@@ -38,7 +38,7 @@ Reproduciblify is the act of converting every failing step into a passing one �
 
 ## Required Input
 
-1. **A Galaxy history** (required). Connect via the Galaxy MCP server and inspect it — see `galaxy-integration/mcp-reference/SKILL.md`. The relevant calls: `get_history_contents`, `get_dataset_details` (with preview), `get_job_details` (the job that produced each dataset, including its inputs and tool id).
+1. **A Galaxy history** (required). Connect via the Galaxy MCP server and inspect it — see `../galaxy-mcp-reference/SKILL.md`. The relevant calls: `get_history_contents`, `get_dataset_details` (with preview), `get_job_details` (the job that produced each dataset, including its inputs and tool id).
 2. **A plan / recipe / transcript** (optional but valuable). If the user has the steps that produced the history — a methods note, a chat log, an SI recipe — use it to recover *intent*: which steps were exploratory dead-ends, which outputs mattered, why parameters were chosen. The history shows *what happened*; the recipe helps recover *what was meant*.
 
 ## Workflow
@@ -138,7 +138,7 @@ Before declaring done:
 
 ## See Also
 
-- `galaxy-integration/mcp-reference/SKILL.md` — Galaxy MCP tools (history/dataset/tool/page access, `run_tool`).
+- `../galaxy-mcp-reference/SKILL.md` — Galaxy MCP tools (history/dataset/tool/page access, `run_tool`).
 - `collection-manipulation/SKILL.md` — map/reduce restructuring with native collection tools.
 - `tool-dev/SKILL.md` — building a Galaxy tool when no suitable one exists (fallback path).
 - `references/directives.yml` — Galaxy markdown directive metadata for embedding on-graph artifacts (synced from upstream Galaxy via `make sync-directives`).

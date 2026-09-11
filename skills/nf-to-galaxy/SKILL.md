@@ -1,6 +1,6 @@
 ---
 name: nf-to-galaxy
-description: Router skill for Nextflow to Galaxy conversions - directs to appropriate sub-skill
+description: "Use when converting Nextflow to Galaxy -- a single process to a Galaxy tool XML, a subworkflow or full pipeline to a Galaxy workflow, or an nf-core module. Routes to the right sub-skill and covers container-to-bioconda mapping and testing the result."
 ---
 
 # Nextflow to Galaxy Conversion (Router)
