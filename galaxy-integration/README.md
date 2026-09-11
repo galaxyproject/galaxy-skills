@@ -29,6 +29,7 @@ galaxy-integration/
 ├── mcp-reference/              # MCP tools reference
 │   ├── SKILL.md               # Full MCP tools reference
 │   ├── history-access.md      # History/dataset access patterns
+│   ├── name-tags.md           # Name tags for tracking workflow runs
 │   └── gotchas.md             # Common pitfalls (keychain, URL slugs)
 │
 ├── scripts/                    # BioBlend automation

@@ -38,6 +38,7 @@ If the user asks about Galaxy MCP, JupyterLite notebooks, or BioBlend automation
 
 - References:
   - `galaxy-integration/mcp-reference/history-access.md` (history/dataset access patterns)
+  - `galaxy-integration/mcp-reference/name-tags.md` (name tags for tracking workflow runs)
   - `galaxy-integration/mcp-reference/gotchas.md` (common pitfalls)
   - `galaxy-integration/galaxy-integration.md` (detailed MCP + BioBlend docs)
   - `galaxy-integration/scripts/galaxy_tool_checker.py` (BioBlend automation)
