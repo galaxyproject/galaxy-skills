@@ -99,6 +99,55 @@ inputs = {
 
 **How to diagnose after failure**: if a tool fails with no obvious stderr cause, fetch `get_job_details(dataset_id)` and inspect `command_line` for the string `ConnectedValue object at 0x`. That signature confirms the omitted-optional-input bug.
 
+## Workflow API Double-Nests pick_value Parameters
+
+**Problem**: A workflow with `pick_value` steps (conditional `pick_style` parameter)
+fails when invoked via the API with:
+
+> `Parameter 'pick_style': an invalid option (None) was selected`
+
+even though the same workflow runs fine from the Galaxy UI. Galaxy double-nests
+the parameter values on API invocation (`{parameter_value: {parameter_value: 3}}`
+instead of `{parameter_value: 3}`), so every `pick_value` step gets a value shape
+it doesn't expect.
+
+**Solution**: This is a known Galaxy API / workflow-serialization issue with no
+clean invoke-time workaround. Run the workflow from the **Galaxy UI** instead of
+`invoke_workflow`. Construct the complete parameter set yourself and hand it to
+the user to fill into the workflow "Run" form, or fill it in directly if you
+have UI access. Confirmed on the IWC `Preprocessing-and-Clustering-of-single-cell-RNA-seq-data-with-Scanpy`
+workflow, but the underlying serialization bug applies to any workflow using
+`pick_value`.
+
+## Boolean Parameters Mis-marshalled Through Workflow Wiring
+
+**Problem**: A tool step exposed through a workflow as a user-facing boolean can
+silently receive the wrong value even when the run form shows the expected
+setting. Confirmed with STARsolo's `soloBarcodeReadLength` parameter as wired by
+the IWC `fastq-to-matrix-10x` workflow: the workflow surfaces it as a boolean,
+but the value doesn't marshal reliably to the underlying tool parameter,
+producing `Solo: CB 17bp` in the log for 10x v3 data instead of the correct
+`Solo: CB 16bp`.
+
+**Solution**: If a workflow-wired boolean produces behavior inconsistent with
+what's shown on the run form, invoke the underlying tool directly via the tool
+API instead of through the workflow, and pass the parameter's raw string value
+explicitly (e.g. `"0"` rather than relying on a checkbox). Directly-invoked tool
+parameters aren't subject to the workflow's boolean-wiring layer.
+
+## Datatype Mismatches Block Otherwise-Valid Inputs
+
+**Problem**: A dataset produced by one tool (e.g. `tsv`) can be functionally
+identical to what a downstream tool or workflow expects (e.g. `tabular`) but
+still be rejected or simply not offered as a valid input, because Galaxy matches
+inputs by declared datatype, not content.
+
+**Solution**: Check the declared datatype of upstream outputs against the
+downstream tool/workflow's expected input datatype before wiring them together.
+If they differ but are format-compatible, change the dataset's datatype via
+**Edit Attributes -> Datatype** (or the equivalent `update_dataset` MCP call)
+before using it as input.
+
 ## Connection Issues
 
 ```python
