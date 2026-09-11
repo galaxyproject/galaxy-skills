@@ -131,6 +131,27 @@ inputs = {
 }
 ```
 
+**Setting element identifiers.** The form above leaves `__BUILD_LIST__` to name
+elements `0`, `1`, `2`, ... To control the identifiers — almost always what you
+want, since they become the sample labels downstream — set the `id_cond`
+conditional on each repeat block:
+
+```python
+inputs = {
+    "datasets_0|input":              {"src": "hda", "id": fwd_1},
+    "datasets_0|id_cond|id_select":  "manual",
+    "datasets_0|id_cond|identifier": "SRR22376027",
+    "datasets_1|input":              {"src": "hda", "id": fwd_2},
+    "datasets_1|id_cond|id_select":  "manual",
+    "datasets_1|id_cond|identifier": "SRR22376028",
+}
+```
+
+`id_select` accepts `idx` (positional), `identifier` (reuse the dataset name),
+or `manual` (supply `identifier` explicitly). Omitting `id_cond` is not an
+error — it silently produces positional identifiers, so a downstream
+`list:paired` will be structurally valid but carry the wrong sample labels.
+
 ### 8. Tool Response Structure
 
 Understand what comes back from tool execution:
