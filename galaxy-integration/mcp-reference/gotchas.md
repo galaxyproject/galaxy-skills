@@ -99,6 +99,35 @@ inputs = {
 
 **How to diagnose after failure**: if a tool fails with no obvious stderr cause, fetch `get_job_details(dataset_id)` and inspect `command_line` for the string `ConnectedValue object at 0x`. That signature confirms the omitted-optional-input bug.
 
+## Checking Pre-indexed Reference Genomes
+
+**Problem**: IWC workflows that use index-backed tools (STAR, BWA, Bowtie2, Cufflinks, etc.) need the target genome's `dbkey`. Before choosing a strategy you must know whether the instance already has that genome indexed — otherwise you may wrongly conclude an IWC workflow is unusable for a non-model organism and fall back to a complex manual index build, or invoke a workflow that silently fails on a wrong/missing genome key.
+
+**Solution**: Query `/api/genomes` and search for the organism, accession prefix, or strain name **before** deciding between a pre-indexed workflow and building an index from scratch:
+
+```bash
+curl -s "https://usegalaxy.org/api/genomes?key=$GALAXY_API_KEY" | python3 -c "
+import sys, json
+genomes = json.load(sys.stdin)
+query = 'auris'
+hits = [g for g in genomes if query.lower() in str(g).lower()]
+for h in hits:
+    print(h[1], '-', h[0])
+"
+# Output:
+# GCA_002759435.3 - Candidozyma auris (GCA_002759435.3_Cand_auris_B8441_V3)
+# GCF_003013715.1 - Candidozyma auris (GCF_003013715.1_ASM301371v2)
+# ...
+```
+
+The endpoint returns a list of `[display_name, dbkey]` pairs for every genome on that instance. The **`dbkey`** (second element, e.g. `GCA_002759435.3`) is what STAR, BWA, Bowtie2, Cufflinks, and similar tools expect for the Reference genome selector in IWC workflows.
+
+**If the genome is not listed**, two fallbacks:
+1. Build the index from history data via a genome-indexing tool (e.g. `rna_star` with `geneSource=history`).
+2. Check BRC-Analytics / UCSC for the genome and ask the user whether to request it be added to the instance.
+
+**Why it matters** — real example: an RNA-seq task for *Candidozyma auris* B8441 V3 (`GCA_002759435.3`) was initially assumed to be a non-model organism with no index. A `/api/genomes` check showed `GCA_002759435.3` was already present, so the IWC `rnaseq-pe` workflow ran as-is — no manual index build needed.
+
 ## Connection Issues
 
 ```python
