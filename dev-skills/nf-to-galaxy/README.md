@@ -14,7 +14,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
    - Subworkflow → `nf-subworkflow-to-galaxy-workflow/`
    - Complete pipeline → `nf-pipeline-to-galaxy-workflow/`
 
-**Using Galaxy integration?** See `../galaxy-integration/README.md` and `../galaxy-integration/galaxy-integration.md`.
+**Using Galaxy integration?** See `../../skills/galaxy-integration/README.md` and `../../skills/galaxy-integration/galaxy-integration.md`.
 
 ---
 
@@ -25,7 +25,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 | File | Purpose | When to Read |
 |------|---------|--------------|
 | **`SKILL.md`** | Main router, decides which sub-skill to use | **Start here** |
-| **`../galaxy-integration/galaxy-integration.md`** | Galaxy MCP/BioBlend setup, usage, examples | Using Galaxy features |
+| **`../../skills/galaxy-integration/galaxy-integration.md`** | Galaxy MCP/BioBlend setup, usage, examples | Using Galaxy features |
 
 ### 🔧 Reference Documentation
 
@@ -55,7 +55,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 |----------------|---------|
 | `scripts/` | Repository availability helper scripts (check_tool.sh) |
 | `examples/` | Complete conversion examples |
-| `.env.example` (skills repo root) | Template for Galaxy credentials (copy to `.env` at repo root; see `../galaxy-integration/README.md`) |
+| `.env.example` (skills repo root) | Template for Galaxy credentials (copy to `.env` at repo root; see `../../skills/galaxy-integration/README.md`) |
 
 ---
 
@@ -65,21 +65,21 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 
 ```bash
 # Option 1: Use script (efficient)
-python ../galaxy-integration/scripts/galaxy_tool_checker.py --tool hyphy iqtree
+python ../../skills/galaxy-integration/scripts/galaxy_tool_checker.py --tool hyphy iqtree
 
 # Option 2: Use MCP (interactive)
 # In agent: "Check if hyphy and iqtree are available on usegalaxy.org"
 ```
 
-See: `../galaxy-integration/galaxy-integration.md` → Tool Checking
+See: `../../skills/galaxy-integration/galaxy-integration.md` → Tool Checking
 
 ### Validate Workflow File
 
 ```bash
-python ../galaxy-integration/scripts/galaxy_tool_checker.py --workflow my_workflow.ga
+python ../../skills/galaxy-integration/scripts/galaxy_tool_checker.py --workflow my_workflow.ga
 ```
 
-See: `../galaxy-integration/galaxy-integration.md` → Workflow Validation
+See: `../../skills/galaxy-integration/galaxy-integration.md` → Workflow Validation
 
 ### Convert Process to Tool
 
@@ -90,9 +90,9 @@ See: `../galaxy-integration/galaxy-integration.md` → Workflow Validation
 ### Convert Pipeline to Workflows
 
 1. Read: `nf-pipeline-to-galaxy-workflow/SKILL.md`
-2. Inventory tools: Use `../galaxy-integration/scripts/galaxy_tool_checker.py`
+2. Inventory tools: Use `../../skills/galaxy-integration/scripts/galaxy_tool_checker.py`
 3. Create workflows with verified tool IDs
-4. Test: `../galaxy-integration/galaxy-integration.md` → Workflow Testing
+4. Test: `../../skills/galaxy-integration/galaxy-integration.md` → Workflow Testing
 
 ---
 
@@ -105,14 +105,14 @@ What do you need?
 │  └─ Read: nextflow-galaxy-terminology.md
 │
 ├─ Check if tool exists?
-│  ├─ On Galaxy instance? → ../galaxy-integration/galaxy-integration.md (Tool Checking)
+│  ├─ On Galaxy instance? → ../../skills/galaxy-integration/galaxy-integration.md (Tool Checking)
 │  └─ In repositories? → check-tool-availability.md
 │
 ├─ Convert something?
 │  └─ Read: SKILL.md (router)
 │
 ├─ Test workflow?
-│  └─ Read: ../galaxy-integration/galaxy-integration.md (Workflow Testing)
+│  └─ Read: ../../skills/galaxy-integration/galaxy-integration.md (Workflow Testing)
 │
 └─ Understand mappings?
    ├─ Containers → container-mapping.md
@@ -137,6 +137,6 @@ What do you need?
 
 - **Confused about structure?** Read this README
 - **Don't know which sub-skill?** Read `SKILL.md`
-- **Need Galaxy setup?** See `../galaxy-integration/galaxy-integration.md` → Setup
+- **Need Galaxy setup?** See `../../skills/galaxy-integration/galaxy-integration.md` → Setup
 - **Want examples?** See `examples/` directory
-- **Script usage?** See `../galaxy-integration/scripts/README.md`
+- **Script usage?** See `../../skills/galaxy-integration/scripts/README.md`

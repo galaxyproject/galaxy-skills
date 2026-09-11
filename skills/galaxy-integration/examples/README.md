@@ -49,7 +49,7 @@ After converting a Nextflow workflow to Galaxy, use these examples to:
 1. Check that all required tools exist (`tool-checking.md`)
 2. Test the converted workflow (`workflow-testing.md`)
 
-**See also**: `../../nf-to-galaxy/examples/` for conversion-specific scenarios
+**See also**: `../../../dev-skills/nf-to-galaxy/examples/` for conversion-specific scenarios
 
 ### During Tool Development
 
@@ -57,7 +57,7 @@ After creating or updating a Galaxy tool, use these examples to:
 1. Verify tool is available on target instance
 2. Test tool in a workflow context
 
-**See also**: `../../tool-dev/SKILL.md`
+**See also**: `../../../dev-skills/tool-dev/SKILL.md`
 
 ### General Workflow Testing
 
@@ -101,8 +101,8 @@ Automated Galaxy tool checker and workflow validator.
 - **Main guide**: `../galaxy-integration.md` - Complete Galaxy integration guide
 - **MCP setup**: `../galaxy-integration.md#setup`
 - **BioBlend script**: `../scripts/README.md` - galaxy_tool_checker.py usage
-- **Conversion examples**: `../../nf-to-galaxy/examples/` - Conversion-specific scenarios
-- **Testing guide**: `../../tool-dev/references/testing.md` - Planemo tool testing
+- **Conversion examples**: `../../../dev-skills/nf-to-galaxy/examples/` - Conversion-specific scenarios
+- **Testing guide**: `../../../dev-skills/tool-dev/references/testing.md` - Planemo tool testing
 
 ---
 

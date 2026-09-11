@@ -156,7 +156,7 @@ Treat the API key like a password. Do not commit it to git.
 
 ## Where This Is Used
 
-- **Nextflow → Galaxy conversions**: see `../nf-to-galaxy/` (the conversion skill points here when MCP is needed)
+- **Nextflow → Galaxy conversions**: see `../../dev-skills/nf-to-galaxy/` (the conversion skill points here when MCP is needed)
 
 See the upstream project for the full API reference:
 - https://github.com/galaxyproject/galaxy-mcp

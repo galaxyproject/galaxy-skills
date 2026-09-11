@@ -101,9 +101,9 @@ Place your skill in the appropriate category:
 
 | Skill Family | Purpose | Examples |
 |--------------|---------|----------|
-| `skills/tool-dev/` | Galaxy tool development (creation + updates) | references/ |
-| `skills/hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
-| `skills/nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
+| `dev-skills/tool-dev/` | Galaxy tool development (creation + updates) | references/ |
+| `dev-skills/hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
+| `dev-skills/nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
 | `skills/galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
 | `skills/collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
 | `skills/trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
@@ -214,10 +214,22 @@ git checkout -b add-my-skill
 
 ### 2. Create Your Skill
 
+Decide which tree it belongs in first -- this determines whether it ships in the plugin:
+
+- **`skills/`** -- for *using* Galaxy: running analyses, structuring data, authoring User-Defined
+  Tools, reproducible handoff. These ship in the `galaxy` plugin and load in Claude Code, Codex,
+  and Antigravity.
+- **`dev-skills/`** -- for *building* Galaxy: tool XML wrappers, Nextflow conversion, ToolShed
+  and usegalaxy-tools operations, Hub content. These stay in the repo but are not registered as
+  skills by any harness.
+
+A `SKILL.md` placed anywhere else -- including the repo root -- is silently ignored. No harness
+scans outside `skills/`, so a misplaced skill produces no error, it just never loads.
+
 ```bash
-# Choose the right top-level skill family or create new one
-mkdir -p my-skill
-cd my-skill
+# Pick the tree, then the family directory
+mkdir -p skills/my-skill
+cd skills/my-skill
 
 # Create SKILL.md with frontmatter
 cat > SKILL.md << 'EOF'

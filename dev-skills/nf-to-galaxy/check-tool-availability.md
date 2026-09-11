@@ -293,7 +293,7 @@ search_tools_by_keywords(keywords=["fasta", "alignment"])
 
  This shows what's actually installed on the target Galaxy instance.
  
- **See**: `../galaxy-integration/galaxy-integration.md` for complete MCP usage guide
+ **See**: `../../skills/galaxy-integration/galaxy-integration.md` for complete MCP usage guide
 
 ### Option B: BioBlend Script (Automated)
 
@@ -301,14 +301,14 @@ For batch checking and minimal token usage:
 
  ```bash
  # Check multiple tools at once
- python ../galaxy-integration/scripts/galaxy_tool_checker.py \
+ python ../../skills/galaxy-integration/scripts/galaxy_tool_checker.py \
      --url https://usegalaxy.org \
      --api-key $GALAXY_API_KEY \
      --tool hyphy iqtree seqkit \
      --output report.json
  ```
  
- **See**: `../galaxy-integration/scripts/galaxy_tool_checker.py` for complete script documentation
+ **See**: `../../skills/galaxy-integration/scripts/galaxy_tool_checker.py` for complete script documentation
 
 ---
 
@@ -439,6 +439,6 @@ When reporting tool availability, use this format:
 
 ## Related Documentation
 
-- **`../galaxy-integration/galaxy-integration.md`** - Complete guide to using Galaxy MCP and BioBlend
+- **`../../skills/galaxy-integration/galaxy-integration.md`** - Complete guide to using Galaxy MCP and BioBlend
 - **`examples/tool-checking-example.md`** - Step-by-step tool checking examples
-- **`../galaxy-integration/scripts/galaxy_tool_checker.py`** - Automated tool checking script
+- **`../../skills/galaxy-integration/scripts/galaxy_tool_checker.py`** - Automated tool checking script

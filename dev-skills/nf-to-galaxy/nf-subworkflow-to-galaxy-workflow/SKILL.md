@@ -130,7 +130,7 @@ Step 3: Tool C (input from Step 2 output)
 
 Use the canonical testing docs:
 - Tool testing (Planemo): `../../tool-dev/references/testing.md`
-- Workflow testing/validation (Galaxy instance): `../../galaxy-integration/galaxy-integration.md`
+- Workflow testing/validation (Galaxy instance): `../../../skills/galaxy-integration/galaxy-integration.md`
 
 `../testing-and-validation.md` is a short routing page that links to these.
 

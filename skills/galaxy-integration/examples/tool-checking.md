@@ -254,7 +254,7 @@ print(json.dumps(tool_mapping, indent=2))
 **Options**:
 1. **Search with different query** - Tool might have different name
 2. **Check ToolShed** - Tool might exist but not installed
-3. **Create custom tool** - See `../../tool-dev/SKILL.md`
+3. **Create custom tool** - See `../../../dev-skills/tool-dev/SKILL.md`
 
 **Example**:
 ```python
@@ -376,7 +376,7 @@ fi
 - **Main guide**: `../galaxy-integration.md` - Complete Galaxy integration guide
 - **BioBlend script**: `../scripts/README.md` - galaxy_tool_checker.py usage
 - **Workflow testing**: `workflow-testing.md` - Testing workflows on Galaxy
-- **Tool creation**: `../../tool-dev/SKILL.md` - Creating missing tools
+- **Tool creation**: `../../../dev-skills/tool-dev/SKILL.md` - Creating missing tools
 
 ---
 

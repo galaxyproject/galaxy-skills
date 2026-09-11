@@ -2,7 +2,7 @@
 
 When working in this repository, treat the skill directories at the repo root -- each holding a
 `SKILL.md` -- as the canonical source of “skills” and follow them as process guidance. There is no
-`skills/` subdirectory; `skills/tool-dev/`, `skills/nf-to-galaxy/`, `skills/collection-manipulation/` and the rest sit
+`skills/` subdirectory; `dev-skills/tool-dev/`, `dev-skills/nf-to-galaxy/`, `skills/collection-manipulation/` and the rest sit
 directly at the top level.
 
 ## Working against a live Galaxy instance
@@ -19,19 +19,19 @@ between MCP clients.
 If the user asks to convert Nextflow pipelines/modules/processes to Galaxy tools/workflows, use the nf-to-galaxy skill family:
 
 - Router:
-  - `skills/nf-to-galaxy/SKILL.md`
+  - `dev-skills/nf-to-galaxy/SKILL.md`
 
 - Sub-skills:
-  - `skills/nf-to-galaxy/nf-process-to-galaxy-tool/SKILL.md`
-  - `skills/nf-to-galaxy/nf-subworkflow-to-galaxy-workflow/SKILL.md`
-  - `skills/nf-to-galaxy/nf-pipeline-to-galaxy-workflow/SKILL.md`
+  - `dev-skills/nf-to-galaxy/nf-process-to-galaxy-tool/SKILL.md`
+  - `dev-skills/nf-to-galaxy/nf-subworkflow-to-galaxy-workflow/SKILL.md`
+  - `dev-skills/nf-to-galaxy/nf-pipeline-to-galaxy-workflow/SKILL.md`
 
 - Shared references:
-  - `skills/nf-to-galaxy/check-tool-availability.md`
-  - `skills/nf-to-galaxy/scripts/check_tool.sh`
-  - `skills/nf-to-galaxy/testing-and-validation.md` (routing page)
-  - `skills/tool-dev/references/testing.md` (Planemo tool testing)
-  - `skills/tool-dev/references/tool-placement.md` (where to create tools)
+  - `dev-skills/nf-to-galaxy/check-tool-availability.md`
+  - `dev-skills/nf-to-galaxy/scripts/check_tool.sh`
+  - `dev-skills/nf-to-galaxy/testing-and-validation.md` (routing page)
+  - `dev-skills/tool-dev/references/testing.md` (Planemo tool testing)
+  - `dev-skills/tool-dev/references/tool-placement.md` (where to create tools)
   - `skills/galaxy-integration/galaxy-integration.md` (workflow testing on Galaxy instance)
   - `skills/galaxy-integration/examples/` (tool checking and workflow testing examples)
 
@@ -76,10 +76,10 @@ All operations must use Galaxy's native tools for reproducibility and workflow c
 If the user asks to add or update a ToolShed tool revision in the usegalaxy-tools repo:
 
 - Skill:
-  - `skills/update-usegalaxy-tool/SKILL.md` (single self-contained command)
+  - `dev-skills/update-usegalaxy-tool/SKILL.md` (single self-contained command)
 
 - References:
-  - `skills/update-usegalaxy-tool/references/file-formats.md` (usegalaxy-tools YAML file formats, ToolShed API, lint script)
+  - `dev-skills/update-usegalaxy-tool/references/file-formats.md` (usegalaxy-tools YAML file formats, ToolShed API, lint script)
 
 ## Workflow Reports
 
@@ -95,7 +95,7 @@ If the user asks to create, draft, or write a Galaxy workflow report template fo
 
 ## User-Defined Tools (UDTs)
 
-If the user asks to create a tool they (a non-admin) can define and run in their own Galaxy account — the `class: GalaxyUserTool` YAML format, often created/run via Galaxy MCP `create_user_tool` / `run_user_tool` or `POST /api/unprivileged_tools` — use the udt-authoring skill. This is distinct from classic XML/ToolShed wrappers (use `skills/tool-dev` for those).
+If the user asks to create a tool they (a non-admin) can define and run in their own Galaxy account — the `class: GalaxyUserTool` YAML format, often created/run via Galaxy MCP `create_user_tool` / `run_user_tool` or `POST /api/unprivileged_tools` — use the udt-authoring skill. This is distinct from classic XML/ToolShed wrappers (use `dev-skills/tool-dev` for those).
 
 - Skill:
   - `skills/udt-authoring/SKILL.md`
@@ -117,15 +117,15 @@ If the user asks to "reproduciblify" a Galaxy history, rebuild a messy analysis 
 - References:
   - `skills/reproduciblify/references/directives.yml` (machine-readable Galaxy markdown directive metadata, synced from upstream Galaxy via `make sync-directives`)
 
-Depends on `skills/galaxy-integration` (MCP access), `skills/collection-manipulation` (map/reduce restructuring), `skills/tool-dev` (creating tools as a fallback), and `skills/workflow-reports` (markdown directives for embedding on-graph artifacts).
+Depends on `skills/galaxy-integration` (MCP access), `skills/collection-manipulation` (map/reduce restructuring), `dev-skills/tool-dev` (creating tools as a fallback), and `skills/workflow-reports` (markdown directives for embedding on-graph artifacts).
 
 ## Other skills in this repo
 
 If the user asks about one of these tasks, use the corresponding skill:
 
-- `skills/hub-news-posts/SKILL.md` (Galaxy Hub news posts)
-- `skills/tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
-  - `skills/tool-dev/tool-selection-diagram/SKILL.md` (generate tool selection flowchart diagrams)
+- `dev-skills/hub-news-posts/SKILL.md` (Galaxy Hub news posts)
+- `dev-skills/tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
+  - `dev-skills/tool-dev/tool-selection-diagram/SKILL.md` (generate tool selection flowchart diagrams)
 - `skills/udt-authoring/SKILL.md` (author User-Defined Tools — GalaxyUserTool YAML)
 - `skills/trackhubs/SKILL.md` (UCSC Track Hub / Assembly Hub publishing)
 
