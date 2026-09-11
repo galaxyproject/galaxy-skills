@@ -99,6 +99,60 @@ inputs = {
 
 **How to diagnose after failure**: if a tool fails with no obvious stderr cause, fetch `get_job_details(dataset_id)` and inspect `command_line` for the string `ConnectedValue object at 0x`. That signature confirms the omitted-optional-input bug.
 
+## run_tool Parameter Flattening
+
+**Problem**: `run_tool` (or `galaxy_run_tool` via MCP) rejects nested JSON or underscore-joined keys for conditionals, repeats, and sections.
+
+**Solution**: Galaxy's internal schema expects a flat dictionary with nested parameter names joined by the pipe character `|`.
+
+```json
+// WRONG - nested object
+"inputs": {
+  "input": {
+    "input_select": "accession_number",
+    "accession": "SRR12487669"
+  }
+}
+
+// WRONG - underscore-joined
+"inputs": {
+  "input_input_select": "accession_number",
+  "input_accession": "SRR12487669"
+}
+
+// CORRECT - pipe-flattened
+"inputs": {
+  "input|input_select": "accession_number",
+  "input|accession": "SRR12487669"
+}
+```
+
+## run_tool Single-Selects Are Strings, Not Arrays
+
+**Problem**: Wrapping a single-select `<select>` value in an array causes a `400` error: `"Parameter 'X': multiple values provided but parameter is not expecting multiple values"`.
+
+**Solution**: Pass a bare string for any select parameter that doesn't allow multiple selections.
+
+```
+Bad:  "input|input_select": ["accession_number"]
+Good: "input|input_select": "accession_number"
+```
+
+## fasterq-dump: Prefer Looping Over file_list
+
+**Problem**: `fasterq_dump` accepts a file of SRA accessions via `"input|input_select": "file_list"`, but mapping an uploaded text file to that conditional through the API is brittle and tends to fail with opaque missing-parameter errors.
+
+**Solution**: Loop over accessions locally and submit one `run_tool` job per accession using `accession_number` mode instead. This is also more parallel-friendly — each accession becomes an independent job spread across the Galaxy cluster rather than one large serial job.
+
+```json
+// Submit one of these payloads per accession
+"inputs": {
+  "input|input_select": "accession_number",
+  "input|accession": "SRR12487669",
+  "adv|split": "--split-3"
+}
+```
+
 ## Connection Issues
 
 ```python
