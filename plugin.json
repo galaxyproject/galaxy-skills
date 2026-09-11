@@ -1,0 +1,20 @@
+{
+  "name": "galaxy",
+  "version": "0.2.0",
+  "description": "Drive Galaxy from your agent -- connects to a Galaxy instance over MCP and bundles skills for tool authoring, User-Defined Tools, Nextflow conversion, collection manipulation, workflow reports, track hubs, reproducibility, and Hub content",
+  "author": {
+    "name": "Galaxy Project",
+    "email": "galaxy-committers@lists.galaxyproject.org"
+  },
+  "homepage": "https://github.com/galaxyproject/galaxy-skills",
+  "repository": "https://github.com/galaxyproject/galaxy-skills",
+  "license": "MIT",
+  "keywords": [
+    "galaxy",
+    "bioinformatics",
+    "tool-development",
+    "nextflow",
+    "workflow",
+    "mcp"
+  ]
+}
