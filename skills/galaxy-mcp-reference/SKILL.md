@@ -12,64 +12,69 @@ user_invocable: true
 
 # Galaxy MCP Tools Reference
 
+Tools are named below as the Galaxy MCP server exposes them. Clients prefix them differently --
+Claude Code and Codex surface `connect` as `mcp__galaxy__connect`, other clients may use the bare
+name or their own scheme. Match the operation, not the spelling; check your client's tool list if a
+name doesn't resolve.
+
 Complete reference for Galaxy MCP server functions.
 
 ## Connection
 
 ```
-mcp__galaxy__connect(url, api_key)  # Connect to Galaxy instance
-mcp__galaxy__get_server_info()       # Server version and config
-mcp__galaxy__get_user()              # Current user details
+connect(url, api_key)  # Connect to Galaxy instance
+get_server_info()      # Server version and config
+get_user()             # Current user details
 ```
 
 ## Histories
 
 ```
-mcp__galaxy__list_history_ids()                    # Quick list: {id, name}
-mcp__galaxy__get_histories(limit, offset, name)    # Paginated, filterable
-mcp__galaxy__get_history_details(history_id)       # Metadata only, no datasets
-mcp__galaxy__get_history_contents(history_id, limit, offset, order)  # Datasets
-mcp__galaxy__create_history(history_name)          # Create new history
+list_history_ids()                                      # Quick list: {id, name}
+get_histories(limit, offset, name)                      # Paginated, filterable
+get_history_details(history_id)                         # Metadata only, no datasets
+get_history_contents(history_id, limit, offset, order)  # Datasets
+create_history(history_name)                            # Create new history
 ```
 
 ## Datasets
 
 ```
-mcp__galaxy__get_dataset_details(dataset_id, include_preview, preview_lines)
-mcp__galaxy__download_dataset(dataset_id, file_path)  # Omit file_path for memory
-mcp__galaxy__upload_file(path, history_id)
-mcp__galaxy__upload_file_from_url(url, history_id, file_type, dbkey)
-mcp__galaxy__get_job_details(dataset_id)  # Job that created this dataset
+get_dataset_details(dataset_id, include_preview, preview_lines)
+download_dataset(dataset_id, file_path)  # Omit file_path for memory
+upload_file(path, history_id)
+upload_file_from_url(url, history_id, file_type, dbkey)
+get_job_details(dataset_id)  # Job that created this dataset
 ```
 
 ## Tools
 
 ```
-mcp__galaxy__search_tools_by_name(query)
-mcp__galaxy__search_tools_by_keywords(keywords)  # keywords is a list
-mcp__galaxy__get_tool_details(tool_id, io_details)
-mcp__galaxy__get_tool_run_examples(tool_id)      # XML test cases
-mcp__galaxy__get_tool_citations(tool_id)
-mcp__galaxy__get_tool_panel()                    # Full toolbox hierarchy
-mcp__galaxy__run_tool(history_id, tool_id, inputs)
+search_tools_by_name(query)
+search_tools_by_keywords(keywords)  # keywords is a list
+get_tool_details(tool_id, io_details)
+get_tool_run_examples(tool_id)  # XML test cases
+get_tool_citations(tool_id)
+get_tool_panel()  # Full toolbox hierarchy
+run_tool(history_id, tool_id, inputs)
 ```
 
 ## Workflows
 
 ```
-mcp__galaxy__list_workflows(workflow_id, name, published)
-mcp__galaxy__get_workflow_details(workflow_id, version)
-mcp__galaxy__invoke_workflow(workflow_id, inputs, params, history_id)
-mcp__galaxy__get_invocations(invocation_id, workflow_id, history_id)
-mcp__galaxy__cancel_workflow_invocation(invocation_id)
+list_workflows(workflow_id, name, published)
+get_workflow_details(workflow_id, version)
+invoke_workflow(workflow_id, inputs, params, history_id)
+get_invocations(invocation_id, workflow_id, history_id)
+cancel_workflow_invocation(invocation_id)
 ```
 
 ## IWC (Intergalactic Workflow Commission)
 
 ```
-mcp__galaxy__get_iwc_workflows()           # Full manifest
-mcp__galaxy__search_iwc_workflows(query)   # Search by name/description/tags
-mcp__galaxy__import_workflow_from_iwc(trs_id)
+get_iwc_workflows()          # Full manifest
+search_iwc_workflows(query)  # Search by name/description/tags
+import_workflow_from_iwc(trs_id)
 ```
 
 ## Common Patterns

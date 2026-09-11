@@ -2,7 +2,7 @@
 
 Real-world examples of converting Nextflow pipelines to Galaxy workflows.
 
-**Note**: These examples focus on **conversion-specific scenarios**. For detailed instructions on **using Galaxy MCP and BioBlend** to check tools and test workflows, see `../../../galaxy-integration/examples/`.
+**Note**: These examples focus on **conversion-specific scenarios**. For detailed instructions on **using Galaxy MCP and BioBlend** to check tools and test workflows, see `../../galaxy-integration/examples/`.
 
 ---
 
@@ -48,7 +48,7 @@ Shows how to:
 
 ## Quick Links
 
-**Setup Galaxy integration**: See `../../../galaxy-integration/galaxy-integration.md` → Setup
+**Setup Galaxy integration**: See `../../galaxy-integration/galaxy-integration.md` → Setup
 
 **Tool checking**:
 - Interactive (1-3 tools): `tool-checking-example.md` → Method 1

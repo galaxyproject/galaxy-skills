@@ -33,7 +33,7 @@ Converting the CAPHEINE pipeline which uses these tools:
 
 **For detailed instructions on using Galaxy MCP and BioBlend to check tools**, see:
 
-**→ `../../../galaxy-integration/examples/tool-checking.md`**
+**→ `../../galaxy-integration/examples/tool-checking.md`**
 
 That guide covers:
 - Using Galaxy MCP for interactive tool checking
@@ -124,7 +124,7 @@ EOF
 ### Step 2: Run Batch Check
 
 ```bash
-python ../../../galaxy-integration/scripts/galaxy_tool_checker.py \
+python ../../galaxy-integration/scripts/galaxy_tool_checker.py \
     --url https://usegalaxy.org \
     --api-key $GALAXY_API_KEY \
     --tool-list tools.txt \
@@ -215,7 +215,7 @@ After checking tool availability:
 2. **For missing tools** (custom alignment):
    - Create custom tool wrapper
    - See: `../nf-process-to-galaxy-tool/SKILL.md`
-   - Or: `../../../tool-dev/SKILL.md`
+   - Or: `../../tool-dev/SKILL.md`
 
 3. **Create workflow**:
    - Use verified tool IDs in `.ga` file
@@ -223,13 +223,13 @@ After checking tool availability:
 
 4. **Test workflow**:
    - See: `workflow-testing-example.md` (this directory)
-   - Or: `../../../galaxy-integration/examples/workflow-testing.md`
+   - Or: `../../galaxy-integration/examples/workflow-testing.md`
 
 ---
 
 ## Related
 
-- **Detailed tool checking guide**: `../../../galaxy-integration/examples/tool-checking.md`
+- **Detailed tool checking guide**: `../../galaxy-integration/examples/tool-checking.md`
 - **CAPHEINE mapping**: `capheine-mapping.md` (complete tool mapping)
 - **Tool creation**: `../nf-process-to-galaxy-tool/SKILL.md`
 - **Workflow testing**: `workflow-testing-example.md`

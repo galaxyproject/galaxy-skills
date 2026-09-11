@@ -14,7 +14,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
    - Subworkflow → `nf-subworkflow-to-galaxy-workflow/`
    - Complete pipeline → `nf-pipeline-to-galaxy-workflow/`
 
-**Using Galaxy integration?** See `../../galaxy-integration/README.md` and `../../galaxy-integration/galaxy-integration.md`.
+**Using Galaxy integration?** See `../galaxy-integration/README.md` and `../galaxy-integration/galaxy-integration.md`.
 
 ---
 
@@ -25,7 +25,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 | File | Purpose | When to Read |
 |------|---------|--------------|
 | **`SKILL.md`** | Main router, decides which sub-skill to use | **Start here** |
-| **`../../galaxy-integration/galaxy-integration.md`** | Galaxy MCP/BioBlend setup, usage, examples | Using Galaxy features |
+| **`../galaxy-integration/galaxy-integration.md`** | Galaxy MCP/BioBlend setup, usage, examples | Using Galaxy features |
 
 ### 🔧 Reference Documentation
 
@@ -33,7 +33,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 |------|---------|
 | `check-tool-availability.md` | How to find if tools exist |
 | `testing-and-validation.md` | Routing page to canonical testing docs |
-| `../../tool-dev/references/testing.md` | Tool testing with Planemo |
+| `../tool-dev/references/testing.md` | Tool testing with Planemo |
 | `nextflow-galaxy-terminology.md` | Concept mappings |
 | `process-to-tool.md` | Process → Tool conversion details |
 | `workflow-to-ga.md` | Workflow → .ga conversion details |
@@ -55,7 +55,7 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 |----------------|---------|
 | `scripts/` | Repository availability helper scripts (check_tool.sh) |
 | `examples/` | Complete conversion examples |
-| `.env.example` (skills repo root) | Template for Galaxy credentials (copy to `.env` at repo root; see `../../galaxy-integration/README.md`) |
+| `.env.example` (skills repo root) | Template for Galaxy credentials (copy to `.env` at repo root; see `../galaxy-integration/README.md`) |
 
 ---
 
@@ -65,21 +65,21 @@ Convert Nextflow workflows to Galaxy tools and workflows.
 
 ```bash
 # Option 1: Use script (efficient)
-python ../../galaxy-integration/scripts/galaxy_tool_checker.py --tool hyphy iqtree
+python ../galaxy-integration/scripts/galaxy_tool_checker.py --tool hyphy iqtree
 
 # Option 2: Use MCP (interactive)
 # In agent: "Check if hyphy and iqtree are available on usegalaxy.org"
 ```
 
-See: `../../galaxy-integration/galaxy-integration.md` → Tool Checking
+See: `../galaxy-integration/galaxy-integration.md` → Tool Checking
 
 ### Validate Workflow File
 
 ```bash
-python ../../galaxy-integration/scripts/galaxy_tool_checker.py --workflow my_workflow.ga
+python ../galaxy-integration/scripts/galaxy_tool_checker.py --workflow my_workflow.ga
 ```
 
-See: `../../galaxy-integration/galaxy-integration.md` → Workflow Validation
+See: `../galaxy-integration/galaxy-integration.md` → Workflow Validation
 
 ### Convert Process to Tool
 
@@ -90,9 +90,9 @@ See: `../../galaxy-integration/galaxy-integration.md` → Workflow Validation
 ### Convert Pipeline to Workflows
 
 1. Read: `nf-pipeline-to-galaxy-workflow/SKILL.md`
-2. Inventory tools: Use `../../galaxy-integration/scripts/galaxy_tool_checker.py`
+2. Inventory tools: Use `../galaxy-integration/scripts/galaxy_tool_checker.py`
 3. Create workflows with verified tool IDs
-4. Test: `../../galaxy-integration/galaxy-integration.md` → Workflow Testing
+4. Test: `../galaxy-integration/galaxy-integration.md` → Workflow Testing
 
 ---
 
@@ -105,14 +105,14 @@ What do you need?
 │  └─ Read: nextflow-galaxy-terminology.md
 │
 ├─ Check if tool exists?
-│  ├─ On Galaxy instance? → ../../galaxy-integration/galaxy-integration.md (Tool Checking)
+│  ├─ On Galaxy instance? → ../galaxy-integration/galaxy-integration.md (Tool Checking)
 │  └─ In repositories? → check-tool-availability.md
 │
 ├─ Convert something?
 │  └─ Read: SKILL.md (router)
 │
 ├─ Test workflow?
-│  └─ Read: ../../galaxy-integration/galaxy-integration.md (Workflow Testing)
+│  └─ Read: ../galaxy-integration/galaxy-integration.md (Workflow Testing)
 │
 └─ Understand mappings?
    ├─ Containers → container-mapping.md
@@ -137,6 +137,6 @@ What do you need?
 
 - **Confused about structure?** Read this README
 - **Don't know which sub-skill?** Read `SKILL.md`
-- **Need Galaxy setup?** See `../../galaxy-integration/galaxy-integration.md` → Setup
+- **Need Galaxy setup?** See `../galaxy-integration/galaxy-integration.md` → Setup
 - **Want examples?** See `examples/` directory
-- **Script usage?** See `../../galaxy-integration/scripts/README.md`
+- **Script usage?** See `../galaxy-integration/scripts/README.md`

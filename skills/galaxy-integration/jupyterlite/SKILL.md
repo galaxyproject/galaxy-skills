@@ -18,7 +18,7 @@ import gxy
 ### Download Datasets
 ```python
 # By HID (history item number)
-path = await gxy.get(1)  # single dataset
+path = await gxy.get(1)           # single dataset
 paths = await gxy.get([1, 2, 3])  # multiple
 
 # By name (partial match)
@@ -129,7 +129,7 @@ Before writing notebook code, use Galaxy MCP tools to discover datasets:
 
 ```
 # In Claude Code, use MCP to find dataset IDs:
-mcp__galaxy__get_history_contents(history_id="...")
+get_history_contents(history_id="...")
 
 # Then reference those IDs in notebook code:
 path = await gxy.get("dataset_id_here", identifier_type="id")

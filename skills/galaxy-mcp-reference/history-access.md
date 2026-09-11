@@ -4,19 +4,19 @@ Detailed patterns for accessing Galaxy history datasets via MCP.
 
 ## List User Histories
 ```
-mcp__galaxy__list_history_ids()
+list_history_ids()
 # Returns: [{id, name}, ...]
 ```
 
 ## Get History by Name
 ```
-mcp__galaxy__get_histories(name="Measles")
+get_histories(name="Measles")
 # Partial match, case-sensitive
 ```
 
 ## Get History Summary (no datasets)
 ```
-mcp__galaxy__get_history_details(history_id="...")
+get_history_details(history_id="...")
 # Returns metadata + dataset count only
 ```
 
@@ -24,7 +24,7 @@ mcp__galaxy__get_history_details(history_id="...")
 
 ### Default (visible, non-deleted only)
 ```
-mcp__galaxy__get_history_contents(
+get_history_contents(
     history_id="...",
     limit=100
 )
@@ -32,7 +32,7 @@ mcp__galaxy__get_history_contents(
 
 ### Get ALL datasets (including hidden/deleted)
 ```
-mcp__galaxy__get_history_contents(
+get_history_contents(
     history_id="...",
     limit=100,
     deleted=true,
@@ -42,7 +42,7 @@ mcp__galaxy__get_history_contents(
 
 ### Get Most Recent Datasets First
 ```
-mcp__galaxy__get_history_contents(
+get_history_contents(
     history_id="...",
     limit=10,
     order="hid-dsc"
@@ -52,17 +52,17 @@ mcp__galaxy__get_history_contents(
 ### Pagination
 ```
 # Page 1
-mcp__galaxy__get_history_contents(history_id="...", limit=100, offset=0)
+get_history_contents(history_id="...", limit=100, offset=0)
 
 # Page 2
-mcp__galaxy__get_history_contents(history_id="...", limit=100, offset=100)
+get_history_contents(history_id="...", limit=100, offset=100)
 ```
 
 ## Dataset Details
 
 ### Preview Dataset Content
 ```
-mcp__galaxy__get_dataset_details(
+get_dataset_details(
     dataset_id="...",
     include_preview=true,
     preview_lines=15
@@ -71,7 +71,7 @@ mcp__galaxy__get_dataset_details(
 
 ### Download Dataset
 ```
-mcp__galaxy__download_dataset(
+download_dataset(
     dataset_id="...",
     file_path="/path/to/save.txt"
 )
@@ -82,7 +82,7 @@ mcp__galaxy__download_dataset(
 ### Find Dataset by HID
 ```python
 # Get recent datasets, find specific HID
-contents = mcp__galaxy__get_history_contents(
+contents = get_history_contents(
     history_id="...",
     limit=50,
     order="hid-dsc",
@@ -102,7 +102,7 @@ contents = mcp__galaxy__get_history_contents(
 
 ### From Local File
 ```
-mcp__galaxy__upload_file(
+upload_file(
     path="/local/path/file.txt",
     history_id="..."
 )
@@ -110,7 +110,7 @@ mcp__galaxy__upload_file(
 
 ### From URL
 ```
-mcp__galaxy__upload_file_from_url(
+upload_file_from_url(
     url="https://example.com/data.fasta",
     history_id="...",
     file_type="fasta"

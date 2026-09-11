@@ -49,7 +49,7 @@ After converting a Nextflow workflow to Galaxy, use these examples to:
 1. Check that all required tools exist (`tool-checking.md`)
 2. Test the converted workflow (`workflow-testing.md`)
 
-**See also**: `../../conversion/nf-to-galaxy/examples/` for conversion-specific scenarios
+**See also**: `../../nf-to-galaxy/examples/` for conversion-specific scenarios
 
 ### During Tool Development
 
