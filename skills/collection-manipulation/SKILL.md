@@ -1,26 +1,16 @@
 ---
-name: galaxy-transform-collection
-description: Galaxy Collection Transformation Command - transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when asked to filter, sort, relabel, restructure, flatten, nest, merge, or otherwise manipulate Galaxy collections.
+name: collection-manipulation
+description: Transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when asked to filter, sort, relabel, restructure, flatten, nest or merge a collection, build a list or paired collection, run a tool over every sample (map over a collection), or work with element identifiers.
 metadata:
   surfaces: [loom]
 user_invocable: true
 ---
 
-# Galaxy Collection Transformation Command
+# Galaxy Collection Manipulation
 
 Transform Galaxy dataset collections reproducibly using Galaxy's native tools.
 
 **CRITICAL PRINCIPLE:** All collection operations MUST use Galaxy's native tools to ensure reproducibility, workflow extractability, and alignment with Galaxy best practices. NEVER manipulate collections directly via API or create collections ad-hoc.
-
-## Your Input
-
-The user will describe a transformation they want to apply to a collection:
-
-```
-$ARGUMENTS
-```
-
----
 
 ## Common Pitfalls (READ FIRST)
 

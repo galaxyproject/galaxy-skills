@@ -1,6 +1,6 @@
 ---
 name: jupyterlite-galaxy
-description: Write JupyterLite notebooks for Galaxy dataset interaction using gxy package
+description: Write JupyterLite notebooks that read and write Galaxy datasets in the browser with the gxy package. Use when the analysis needs custom Python over data already in a history -- plotting, reshaping, ad-hoc inspection -- rather than a Galaxy tool run, or when the user asks for a notebook inside Galaxy.
 user_invocable: true
 ---
 

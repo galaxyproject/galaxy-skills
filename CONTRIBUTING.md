@@ -92,6 +92,25 @@ Links to other files in this skill or external resources.
 | `description` | Yes | When to use this skill (shown to LLM) |
 | `version` | No | Semantic version (e.g., `1.0.0`) |
 | `tags` | No | Array of tags for categorization |
+| `when_to_use` | No | Routing hint read by consumers that rank skills before loading them |
+| `metadata.surfaces` | No | Which consumers route on this skill every turn (e.g. `[loom]`) -- see below |
+
+### `metadata.surfaces`
+
+Agent harnesses discover everything under `skills/` and pay for it once per session. Some consumers
+re-render every selected skill's description on every turn, so they opt into a narrower set through
+this tag:
+
+```yaml
+metadata:
+  surfaces: [loom]
+```
+
+The rule is that a tagged set is always a **subset** of `skills/`, never divergent: `metadata.surfaces`
+may only appear on a skill under `skills/`. Tagging something in `dev-skills/` would ask a consumer
+to route on a skill that no harness installs. Leave the tag off unless a consumer has asked for the
+skill by name -- untagged is the default, not an oversight.
+
 ---
 
 ## Skill Categories
@@ -310,7 +329,7 @@ Study these existing skills for reference:
 
 - **Questions?** Open a discussion on GitHub
 - **Bug reports?** Open an issue
-- **Ideas?** Check [GROWTH_PLAN.md](GROWTH_PLAN.md) for planned skills
+- **Ideas?** Open an issue describing the skill and which tree it belongs in
 
 ---
 
