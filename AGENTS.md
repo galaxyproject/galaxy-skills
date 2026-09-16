@@ -1,9 +1,9 @@
-# Agent Instructions (galaxyproject/skills)
+# Agent Instructions (galaxyproject/galaxy-skills)
 
-When working in this repository, treat the skill directories at the repo root -- each holding a
-`SKILL.md` -- as the canonical source of “skills” and follow them as process guidance. There is no
-`skills/` subdirectory; `dev-skills/tool-dev/`, `dev-skills/nf-to-galaxy/`, `skills/collection-manipulation/` and the rest sit
-directly at the top level.
+When working in this repository, treat each directory holding a `SKILL.md` as the canonical source
+of "skills" and follow them as process guidance. They sit in two trees. `skills/` holds everything
+needed to *use* Galaxy to run an analysis, and is the tree every agent harness discovers.
+`dev-skills/` holds skills for *building* Galaxy itself, and no agent harness scans it.
 
 ## Working against a live Galaxy instance
 
@@ -127,6 +127,6 @@ If the user asks about one of these tasks, use the corresponding skill:
 - `dev-skills/tool-dev/SKILL.md` (comprehensive Galaxy tool development reference)
   - `dev-skills/tool-dev/tool-selection-diagram/SKILL.md` (generate tool selection flowchart diagrams)
 - `skills/udt-authoring/SKILL.md` (author User-Defined Tools — GalaxyUserTool YAML)
-- `skills/trackhubs/SKILL.md` (UCSC Track Hub / Assembly Hub publishing)
+- `dev-skills/trackhubs/SKILL.md` (UCSC Track Hub / Assembly Hub publishing)
 
 For general discovery of what's available, start at `README.md`.

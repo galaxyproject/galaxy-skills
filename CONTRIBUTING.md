@@ -88,11 +88,10 @@ Links to other files in this skill or external resources.
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Kebab-case identifier (e.g., `tool-updates`) |
+| `name` | Yes | Kebab-case identifier matching the directory (e.g., `udt-authoring`) |
 | `description` | Yes | When to use this skill (shown to LLM) |
 | `version` | No | Semantic version (e.g., `1.0.0`) |
 | `tags` | No | Array of tags for categorization |
-
 ---
 
 ## Skill Categories
@@ -106,7 +105,7 @@ Place your skill in the appropriate category:
 | `dev-skills/nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
 | `skills/galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
 | `skills/collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
-| `skills/trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
+| `dev-skills/trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
 
 ---
 
@@ -157,7 +156,7 @@ Link to related skills when appropriate:
 ## See Also
 
 - For testing, see the `planemo` skill
-- For help sections, see `tool-updates/help-sections.md`
+- For help sections, see `dev-skills/update-usegalaxy-tool/help-sections.md`
 ```
 
 ### 5. Keep It Scannable
@@ -214,11 +213,11 @@ git checkout -b add-my-skill
 
 ### 2. Create Your Skill
 
-Decide which tree it belongs in first -- this determines whether it ships in the plugin:
+Decide which tree it belongs in first -- this determines whether an agent ever loads it:
 
 - **`skills/`** -- for *using* Galaxy: running analyses, structuring data, authoring User-Defined
-  Tools, reproducible handoff. These ship in the `galaxy` plugin and load in Claude Code, Codex,
-  and Antigravity.
+  Tools, reproducible handoff. These load in Claude Code, Codex, and Antigravity, and are the tree
+  packaged distributions ship.
 - **`dev-skills/`** -- for *building* Galaxy: tool XML wrappers, Nextflow conversion, ToolShed
   and usegalaxy-tools operations, Hub content. These stay in the repo but are not registered as
   skills by any harness.
@@ -302,8 +301,8 @@ If a skill becomes obsolete:
 
 Study these existing skills for reference:
 
-- **tool-updates** - Multi-file skill with detailed workflow
-- **hub-news-posts** - Single-file skill with clear structure
+- **skills/collection-manipulation** - Multi-file skill with detailed workflow
+- **skills/workflow-reports** - Focused skill with clear trigger language
 
 ---
 
