@@ -20,7 +20,7 @@ DIRECTIVES_SRC  := client/src/components/Markdown
 
 # Each entry is <dest-dir>:<filename> — maps an upstream directives file to the
 # one skill that consumes it.
-DIRECTIVE_TARGETS := workflow-reports/references:directives.md reproduciblify/references:directives.yml
+DIRECTIVE_TARGETS := skills/workflow-reports/references:directives.md skills/reproduciblify/references:directives.yml
 
 .PHONY: sync-directives
 sync-directives:

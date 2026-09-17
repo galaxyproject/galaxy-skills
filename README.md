@@ -11,43 +11,46 @@ This was not written by Claude.
 
 ## What Are Skills?
 
-Skills are structured instructions that help AI agents work effectively with Galaxy development. They provide:
+Skills are structured instructions that teach an agent how to actually use Galaxy -- run analyses on
+a real instance, keep the work on-graph and reproducible, and extend Galaxy when the tool you need
+isn't there yet. They provide:
 
-- **Best practices** - The right way to build Galaxy tools, workflows, and content
+- **Best practices** - The right way to run, structure, and hand off an analysis
 - **Patterns** - Common solutions to common problems
 - **Examples** - Concrete references to learn from
 - **Guardrails** - Preventing common mistakes
 
-> **Important**: This repo is for *developers* building Galaxy infrastructure. End-user analysis should happen in Galaxy itself to leverage its reproducibility and tracking features.
+The analysis runs on Galaxy, not on your laptop. The agent drives a real Galaxy server over MCP, so
+compute happens on Galaxy's infrastructure and every step lands in a history with full provenance --
+a durable, shareable record rather than a folder of loose files. That includes writing new tools when
+one is missing: User-Defined Tools let the agent add a custom step to an analysis without leaving
+Galaxy or waiting on an admin.
 
 ## Skills vs MCP
 
 | Repository | Purpose | Use For |
 |------------|---------|---------|
-| **skills** (this repo) | *Knowledge* - How to build things well | Tool development, workflow conversion, content creation |
-| [**galaxy-mcp**](https://github.com/galaxyproject/galaxy-mcp) | *Capabilities* - Interact with Galaxy programmatically | Testing, automation, CI/CD |
+| **skills** (this repo) | *Knowledge* - How to use Galaxy well | Running analyses, structuring collections, authoring User-Defined Tools, reproducible handoff |
+| [**galaxy-mcp**](https://github.com/galaxyproject/galaxy-mcp) | *Capabilities* - Interact with Galaxy programmatically | The live connection the skills drive |
 
-Use both together for best results.
+Use both together -- the skills describe how to drive the connection galaxy-mcp provides.
 
 ---
 
 ## Installation & Usage
 
-### Claude Code (Native Support)
+### Claude Code / Codex / Antigravity
 
-Skills are automatically available. Just clone this repo into your workspace or add to `.claude/skills/`:
+Clone into the skills directory your agent reads:
 
 ```bash
-# Personal skills (available in all projects)
 cd ~/.claude/skills
-git clone https://github.com/galaxyproject/skills galaxy
-
-# Project skills (specific to one project)
-cd your-project/.claude/skills
-git clone https://github.com/galaxyproject/skills galaxy
+git clone https://github.com/galaxyproject/galaxy-skills galaxy
 ```
 
-Claude will automatically discover and use skills when relevant.
+Packaged installs -- a marketplace entry that also wires up the MCP server -- are assembled in a
+separate distribution repository, which vendors the `skills/` tree from here. This repository stays
+the source of the skills themselves.
 
 ### Windsurf / Cursor / Aider (via openskills)
 
@@ -56,10 +59,10 @@ Claude will automatically discover and use skills when relevant.
 npm i -g openskills
 
 # Install Galaxy skills
-openskills install galaxyproject/skills
+openskills install galaxyproject/galaxy-skills
 
 # Load a specific skill when needed
-openskills read tool-updates
+openskills read galaxy-mcp-reference
 ```
 
 ### Any Agent (Manual)
@@ -67,126 +70,88 @@ openskills read tool-updates
 Clone this repo into your workspace and reference skills in your prompts:
 
 ```bash
-git clone https://github.com/galaxyproject/skills
+git clone https://github.com/galaxyproject/galaxy-skills
 ```
 
 The LLM can read skill files directly from the workspace.
+
+### Connecting to a Galaxy instance
+
+The skills drive a live server through [galaxy-mcp](https://github.com/galaxyproject/galaxy-mcp),
+which runs under `uvx` and needs an instance and a key:
+
+```bash
+export GALAXY_URL=https://usegalaxy.org   # this is the default if unset
+export GALAXY_API_KEY=your_api_key        # User -> Preferences -> Manage API Key
+```
+
+A `.env` file in your working directory works too, and credentials can also be supplied at runtime
+with `connect(url, api_key)`. The server exposes 45 tools; `GALAXY_MCP_EXCLUDE_TAGS` and
+`GALAXY_MCP_INCLUDE_TAGS` trim what sits in context. `skills/galaxy-integration/` covers the setup
+and the alternatives (JupyterLite, BioBlend) in more detail.
 
 ---
 
 ## Available Skills
 
-### Tool Development
+`skills/` holds the skills for *using* Galaxy -- running an analysis on a real instance, keeping it
+structured and reproducible, and extending Galaxy when a tool you need is missing. This is the tree
+a packaged install ships.
 
-**tool-dev** ✅
+**galaxy-integration** -- Connect an agent to a Galaxy instance and choose how to drive it (MCP,
+JupyterLite notebooks, or BioBlend). Start here.
 
-Create and update Galaxy tool wrappers.
+**galaxy-mcp-reference** -- The Galaxy MCP tool surface: histories, datasets, tools, workflows,
+invocations, and the pitfalls that bite first.
 
-- Comprehensive SKILL.md covering tool creation, testing, IUC review, and updates
-- **references/** - Standalone testing and tool placement guides (also used by other skills)
-- **tool-selection-diagram/** - Generate "which tool?" flowchart PNGs for multi-tool suites
+**collection-manipulation** -- Transform Galaxy dataset collections reproducibly with native tools:
+filter, sort, relabel, merge, flatten, nest, and the Apply Rules DSL.
 
-**udt-authoring** ✅
+**udt-authoring** -- Author User-Defined Tools: a `class: GalaxyUserTool` YAML definition wrapping a
+container and command into a tool a non-admin user creates and runs. This is how an agent adds a
+custom analysis step without leaving Galaxy or waiting on an admin.
 
-Author Galaxy User-Defined Tools (UDTs) — the `class: GalaxyUserTool` YAML format a non-admin user creates and runs (distinct from classic XML/ToolShed wrappers).
+**workflow-reports** -- Write workflow report templates for the Workflow Editor's Report tab.
 
-- SKILL.md with the authoring loop and offline/server validation tiers
-- **references/** - UserToolSource schema, `$(...)` templating, common mistakes checklist
-- **scripts/validate.py** - offline validate + lint via galaxy-tool-util
-- **examples/** - seven complete UDTs, simple to complex
+**reproduciblify** -- Re-execute a messy, ad-hoc history as a clean, fully on-graph,
+collection-structured analysis that extracts into a reusable workflow.
 
-### Content
+### Also in this repo (not shipped to analysts)
 
-**hub-news-posts** ✅
-
-Write news posts for the Galaxy Project website (galaxyproject.org).
-
-- Frontmatter templates
-- Image handling
-- Vega charts
-- Styled tables
-
-### Conversion
-
-**nf-to-galaxy** ✅
-
-Convert Nextflow processes and workflows to Galaxy tools and workflows.
-
-- Process → Tool XML
-- Container → bioconda mapping
-- Workflow → .ga files
-- Test with planemo and galaxy-mcp
-
-### Integration
-
-**galaxy-integration** ✅
-
-Interact with Galaxy instances via MCP, JupyterLite, or BioBlend.
-
-- **jupyterlite/** - Write notebooks using gxy package
-- **mcp-reference/** - Complete MCP tools reference
-- Tool checking and workflow testing examples
-- BioBlend automation scripts
-
-### Server Tool Management
-
-**update-usegalaxy-tool** ✅
-
-Add or update ToolShed tool revisions in the [usegalaxy-tools](https://github.com/galaxyproject/usegalaxy-tools) repository.
-
-- Resolve changeset revisions via ToolShed API
-- Edit `.yml` / `.yml.lock` toolset files
-- Handle adds, updates, moves, and removals across sections
-- Lint with `fix_lockfile.py`
-
-### Collection Manipulation
-
-**collection-manipulation** ✅
-
-Transform Galaxy dataset collections reproducibly using native tools.
-
-- Filter, sort, relabel, merge, flatten, nest collections
-- 26 collection operation tools
-- Apply Rules DSL for complex restructuring
-- API patterns and pitfall avoidance
-
----
+`dev-skills/` holds skills for *building* Galaxy rather than using it -- `tool-dev` (authoring tool
+XML wrappers for tools-iuc), `nf-to-galaxy` (converting Nextflow processes and pipelines),
+`update-usegalaxy-tool` (ToolShed revisions in usegalaxy-tools), `trackhubs` (publishing UCSC Track
+Hubs, which is mostly UCSC tooling outside Galaxy), and `hub-news-posts` (galaxyproject.org news).
+They sit outside `skills/` so that installing the analysis set doesn't hand an analyst a pile of
+tool-development guidance, but they remain here to read, to link to, and to install by hand.
 
 ## Repository Structure
 
 ```
-skills/
-├── README.md                    # This file
+galaxy-skills/
+├── AGENTS.md                    # Cross-agent routing instructions
 ├── CONTRIBUTING.md              # How to add new skills
-├── AGENTS.md                    # Agent routing instructions
 │
-├── tool-dev/                    # ✅ Galaxy tool development
-│   ├── SKILL.md                # Comprehensive tool dev reference
-│   ├── references/             # Testing, tool placement guides
-│   └── tool-selection-diagram/ # Flowchart diagram generator for multi-tool suites
+├── skills/                          # <- using Galaxy; this is what gets packaged
+│   ├── galaxy-integration/          # Connect and choose how to drive Galaxy
+│   │   └── jupyterlite/             # JupyterLite notebooks (gxy package)
+│   ├── galaxy-mcp-reference/        # Galaxy MCP tool surface
+│   ├── collection-manipulation/     # Collection transformations
+│   ├── udt-authoring/               # User-Defined Tools
+│   ├── workflow-reports/            # Workflow report templates
+│   └── reproduciblify/              # Ad-hoc history -> reusable workflow
 │
-├── udt-authoring/               # ✅ Author User-Defined Tools (GalaxyUserTool YAML)
-│   ├── SKILL.md                 # Authoring loop + validation tiers
-│   ├── references/              # Schema, templating, common mistakes
-│   ├── scripts/                 # validate.py (offline validate + lint)
-│   └── examples/                # Seven complete UDTs
-│
-├── hub-news-posts/              # ✅ Galaxy Hub posts
-│
-├── nf-to-galaxy/                # ✅ Nextflow → Galaxy conversion
-│
-├── galaxy-integration/          # ✅ Galaxy instance integration
-│   ├── jupyterlite/             # JupyterLite notebooks (gxy package)
-│   └── mcp-reference/           # MCP tools reference
-│
-├── update-usegalaxy-tool/       # ✅ UseGalaxy tool management
-│   ├── SKILL.md                 # Main command (add/update ToolShed revisions)
-│   └── references/              # YAML file formats, ToolShed API, lint script
-│
-└── collection-manipulation/     # ✅ Collection transformations
-    ├── SKILL.md                 # Main command (filter, sort, restructure, etc.)
-    └── references/              # Tools catalog, Apply Rules DSL, API, tests
+└── dev-skills/                      # <- building Galaxy; not registered by any harness
+    ├── tool-dev/                    # Authoring Galaxy tool XML wrappers
+    ├── nf-to-galaxy/                # Nextflow -> Galaxy conversion
+    ├── trackhubs/                    # UCSC Track Hub publishing
+    ├── update-usegalaxy-tool/       # ToolShed revisions in usegalaxy-tools
+    └── hub-news-posts/              # galaxyproject.org news posts
 ```
+
+Every major agent harness -- Claude Code, Codex, and Antigravity -- discovers skills at `skills/`
+by convention, and none of them scans `dev-skills/`. That is what keeps an install focused on
+analysis without deleting anyone's work.
 
 ---
 
@@ -203,26 +168,35 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ## Examples
 
-### Updating a Galaxy Tool
+### Running an analysis
 
 ```
-User: "Update the ncbi-datasets tool to version 18.13.0"
+User: "Upload these FASTQ files and run FastQC on all of them"
 
-AI: [Loads tool-updates skill]
-    [Follows workflow: research upstream → update version → fix bugs → test]
-    [Uses planemo for validation]
+AI: [Loads galaxy-integration to connect, then galaxy-mcp-reference]
+    [Creates a history, uploads the reads]
+    [Builds a list collection so one job covers every sample]
+    [Runs FastQC mapped over the collection, reports when the jobs finish]
 ```
 
-### Converting Nextflow to Galaxy
+### Adding a step Galaxy doesn't have
 
 ```
-User: "Convert this Nextflow process to a Galaxy tool"
+User: "There's no Galaxy tool for this container -- can I still run it?"
 
-AI: [Loads nf-to-galaxy skill]
-    [Maps container → bioconda package]
-    [Generates Galaxy tool XML]
-    [Tests with planemo lint]
-    [Optionally tests on Galaxy instance via galaxy-mcp]
+AI: [Loads udt-authoring skill]
+    [Writes a `class: GalaxyUserTool` YAML wrapping the container]
+    [Creates it with create_user_tool and runs it -- no admin required]
+```
+
+### Making a messy history reproducible
+
+```
+User: "Turn this history into something I can rerun on new samples"
+
+AI: [Loads reproduciblify skill]
+    [Re-executes the analysis on-graph with collection structure]
+    [Authors a notebook that extracts into a sample-agnostic workflow]
 ```
 
 ---

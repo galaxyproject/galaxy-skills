@@ -88,10 +88,28 @@ Links to other files in this skill or external resources.
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Kebab-case identifier (e.g., `tool-updates`) |
+| `name` | Yes | Kebab-case identifier matching the directory (e.g., `udt-authoring`) |
 | `description` | Yes | When to use this skill (shown to LLM) |
 | `version` | No | Semantic version (e.g., `1.0.0`) |
 | `tags` | No | Array of tags for categorization |
+| `when_to_use` | No | Routing hint read by consumers that rank skills before loading them |
+| `metadata.surfaces` | No | Which consumers route on this skill every turn (e.g. `[loom]`) -- see below |
+
+### `metadata.surfaces`
+
+Agent harnesses discover everything under `skills/` and pay for it once per session. Some consumers
+re-render every selected skill's description on every turn, so they opt into a narrower set through
+this tag:
+
+```yaml
+metadata:
+  surfaces: [loom]
+```
+
+The rule is that a tagged set is always a **subset** of `skills/`, never divergent: `metadata.surfaces`
+may only appear on a skill under `skills/`. Tagging something in `dev-skills/` would ask a consumer
+to route on a skill that no harness installs. Leave the tag off unless a consumer has asked for the
+skill by name -- untagged is the default, not an oversight.
 
 ---
 
@@ -101,12 +119,12 @@ Place your skill in the appropriate category:
 
 | Skill Family | Purpose | Examples |
 |--------------|---------|----------|
-| `tool-dev/` | Galaxy tool development (creation + updates) | references/ |
-| `hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
-| `nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
-| `galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
-| `collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
-| `trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
+| `dev-skills/tool-dev/` | Galaxy tool development (creation + updates) | references/ |
+| `dev-skills/hub-news-posts/` | Documentation and content creation | Galaxy Hub news posts |
+| `dev-skills/nf-to-galaxy/` | Nextflow → Galaxy conversion | process-to-tool, workflow conversion |
+| `skills/galaxy-integration/` | Galaxy instance integration (MCP, BioBlend) | tool-checking, workflow-testing |
+| `skills/collection-manipulation/` | Galaxy collection transformations | filter, sort, restructure, Apply Rules |
+| `dev-skills/trackhubs/` | UCSC Track Hub / Assembly Hub publishing | bigChain conversion, composite-track rules, hub.txt/genomes.txt/trackDb.txt, hubCheck |
 
 ---
 
@@ -157,7 +175,7 @@ Link to related skills when appropriate:
 ## See Also
 
 - For testing, see the `planemo` skill
-- For help sections, see `tool-updates/help-sections.md`
+- For help sections, see `dev-skills/update-usegalaxy-tool/help-sections.md`
 ```
 
 ### 5. Keep It Scannable
@@ -214,10 +232,22 @@ git checkout -b add-my-skill
 
 ### 2. Create Your Skill
 
+Decide which tree it belongs in first -- this determines whether an agent ever loads it:
+
+- **`skills/`** -- for *using* Galaxy: running analyses, structuring data, authoring User-Defined
+  Tools, reproducible handoff. These load in Claude Code, Codex, and Antigravity, and are the tree
+  packaged distributions ship.
+- **`dev-skills/`** -- for *building* Galaxy: tool XML wrappers, Nextflow conversion, ToolShed
+  and usegalaxy-tools operations, Hub content. These stay in the repo but are not registered as
+  skills by any harness.
+
+A `SKILL.md` placed anywhere else -- including the repo root -- is silently ignored. No harness
+scans outside `skills/`, so a misplaced skill produces no error, it just never loads.
+
 ```bash
-# Choose the right top-level skill family or create new one
-mkdir -p my-skill
-cd my-skill
+# Pick the tree, then the family directory
+mkdir -p skills/my-skill
+cd skills/my-skill
 
 # Create SKILL.md with frontmatter
 cat > SKILL.md << 'EOF'
@@ -290,8 +320,8 @@ If a skill becomes obsolete:
 
 Study these existing skills for reference:
 
-- **tool-updates** - Multi-file skill with detailed workflow
-- **hub-news-posts** - Single-file skill with clear structure
+- **skills/collection-manipulation** - Multi-file skill with detailed workflow
+- **skills/workflow-reports** - Focused skill with clear trigger language
 
 ---
 
@@ -299,7 +329,7 @@ Study these existing skills for reference:
 
 - **Questions?** Open a discussion on GitHub
 - **Bug reports?** Open an issue
-- **Ideas?** Check [GROWTH_PLAN.md](GROWTH_PLAN.md) for planned skills
+- **Ideas?** Open an issue describing the skill and which tree it belongs in
 
 ---
 
