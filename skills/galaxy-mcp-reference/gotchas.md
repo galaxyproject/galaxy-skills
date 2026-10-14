@@ -133,3 +133,36 @@ get_history_contents(history_id="...", limit=100, offset=100)
 - `create_time-dsc` - most recently created
 - `update_time-dsc` - most recently modified
 - `name-asc` - alphabetical
+
+## Coordinate Operations: Checking BEDTools First vs. Format-Specific Tools (gffread)
+
+**Problem**: When an analysis or workflow requires manipulating genomic intervals, computing overlaps, or extracting FASTA sequences from coordinates, agents often overlook Galaxy's native interval toolset and resort to writing custom scripts, downloading datasets for local processing, or requesting manual user intervention. Conversely, when attempting to extract coding sequences (CDS) or transcripts from a GTF/GFF for pseudoaligners like Kallisto or Salmon, agents may misuse general-purpose interval tools.
+
+**Solution**:
+1. **Always check Galaxy's native BEDTools suite first**:
+   - `bedtools GetFastaBed` (`bedtools_getfastabed`): Extract FASTA sequences corresponding to interval coordinates.
+   - `bedtools Intersect intervals` (`bedtools_intersectbed`): Overlap intervals across datasets.
+   - `bedtools MergeBED` (`bedtools_mergebed`): Combine overlapping intervals.
+   - `bedtools Compute both the depth and breadth of coverage` (`bedtools_coveragebed`): Calculate sequencing depth and breadth.
+
+2. **The GFF/GTF gotcha (`bedtools getfasta` vs. `gffread`)**:
+   - `bedtools getfasta` treats every line of an input file as an independent genomic interval. When run directly on a raw RefSeq or Ensembl GTF without strict pre-filtering:
+     - It extracts redundant entries for `gene`, `CDS`, and 3-bp `start_codon`/`stop_codon` features.
+     - Negative-strand features are extracted forward unless the `-s` (force strandedness) option is explicitly toggled.
+     - Output FASTA headers default to the entire column 9 attribute string, causing header parsing errors in downstream tools like `tximport`.
+   - **For GTF/GFF transcript and CDS extraction, reach for `gffread` instead**:
+     - Tool ID: `toolshed.g2.bx.psu.edu/repos/devteam/gffread/gffread/2.2.1.4+galaxy0`
+     - Setting `fa_outputs` to `-x cds.fa` (CDS) or `-w exons.fa` (spliced transcripts) automatically handles parent-child feature grouping, extracts coding sequence, applies reverse-complementation on the minus strand, and labels FASTA records with clean `transcript_id`s that map 1:1 into `tximport`.
+
+## Tool Selection: Aligners and Biological Splicing Assumptions
+
+**Problem**: Using splice-aware RNA-seq aligners (e.g., HISAT2, STAR) on prokaryotic (bacterial or archaeal) genomes.
+
+**Why It Fails**:
+Prokaryotes lack spliceosomal introns. Spliced aligners incorporate complex junction-search heuristics designed to discover and align across eukaryotic exon-intron boundaries. On prokaryotic data, these algorithms waste substantial compute attempting to fit splice junctions into contiguous coding sequences, struggle across operons, and frequently hang on multi-mapping ribosomal RNA reads—causing jobs to take hours (e.g. 5+ hours on cluster nodes) or fail.
+
+**Solution**:
+Match the tool to the organism's genome architecture:
+1. **Pseudoalignment (Recommended for RNA-seq quantification)**: Use **Kallisto** (`kallisto_quant`) or **Salmon** against reference CDS/transcripts, aggregated via `tximport` into `DESeq2`. Completes in minutes (2–5 min) with high biological fidelity.
+2. **Genomic Alignment**: If a coordinate-sorted BAM is required (e.g., for variant calling or browser tracks), use unspliced aligners like **Bowtie2** or **BWA-MEM**, never spliced aligners.
+
