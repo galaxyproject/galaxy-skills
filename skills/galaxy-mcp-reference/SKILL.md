@@ -79,7 +79,7 @@ import_workflow_from_iwc(trs_id)
 
 ## Common Patterns
 
-### Tool Discovery
+### Tool Discovery & Selection Guardrails
 ```python
 # Find candidate tools
 search_tools_by_name(query="hyphy")
@@ -87,6 +87,9 @@ search_tools_by_name(query="hyphy")
 # Inspect I/O
 get_tool_details(tool_id="toolshed.g2.bx.psu.edu/repos/iuc/hyphy_fel/hyphy_fel/2.5.84+galaxy0", io_details=True)
 ```
+- **Interval & sequence extraction**: Check native **BEDTools** (`bedtools_getfastabed`, `bedtools_intersectbed`) before writing external scripts. For GTF/GFF transcript/CDS extraction, use **`gffread`** to avoid multi-feature duplicate slices and ensure transcript IDs match downstream tools like `tximport` (see `gotchas.md`).
+- **Aligner biology**: Never use splice-aware aligners (HISAT2, STAR) on prokaryotic genomes. Use pseudoaligners (Kallisto, Salmon) or unspliced aligners (Bowtie2, BWA-MEM) to avoid cluster bottlenecks (see `gotchas.md`).
+
 
 ### Workflow Testing Loop
 ```python
