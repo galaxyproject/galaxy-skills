@@ -1,6 +1,6 @@
 ---
 name: collection-manipulation
-description: Transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when asked to filter, sort, relabel, restructure, flatten, nest or merge a collection, build a list or paired collection, run a tool over every sample (map over a collection), or work with element identifiers.
+description: Create and transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when organizing imported reads into collections, choosing list or paired structure, filtering, sorting, relabeling, restructuring, flattening, nesting or merging collections, mapping a tool over samples, or working with element identifiers.
 metadata:
   surfaces: [loom]
 user_invocable: true
@@ -8,9 +8,19 @@ user_invocable: true
 
 # Galaxy Collection Manipulation
 
-Transform Galaxy dataset collections reproducibly using Galaxy's native tools.
+Create and transform Galaxy dataset collections reproducibly using Galaxy's native tools.
 
 **CRITICAL PRINCIPLE:** All collection operations MUST use Galaxy's native tools to ensure reproducibility, workflow extractability, and alignment with Galaxy best practices. NEVER manipulate collections directly via API or create collections ad-hoc.
+
+## Choose the Collection Structure Before Building
+
+For a request such as "import these files and organize the reads into a collection," inspect the source file manifest or Galaxy dataset names and datatypes before creating a collection. Read [Pairing imported reads](references/read-pairing.md) when the inputs include FASTQ files or possible read mates.
+
+- Look for complementary mate tokens on the same sample: `_1`/`_2`, `_R1`/`_R2`, or delimiter-separated `F`/`R` and `forward`/`reverse`. Preserve lane, chunk and source distinctions. Filenames suggest pairing; a letter or number alone does not establish it.
+- If the user has not specified the structure and the files suggest pairs, show the pair count, an example and any unmatched files, then **ask and wait before building**: "I see FASTQ files that appear to be paired. Do you want a paired collection?" Offer a paired collection, a flat list, or a review of the proposed matches.
+- Honor an explicit request for paired data, a flat list or intentional flattening without asking the same question again. Reuse the user's choice for the same input set; ask only about unresolved matches or changed scope. An incomplete or ambiguous source listing needs inspection or clarification before choosing a structure.
+- A collection of multiple samples with two mates each is `list:paired`; `paired` represents one pair. Keep references and other non-read files separate from the read collection unless requested otherwise. Resolve missing mates and duplicate matches with the user; never silently drop files, merge lanes or pair by list position.
+- Record the selected structure and sample-to-mate mapping in the analysis record (Loom's notebook when applicable). A flat list may be an intermediate for an agreed paired result; label it accordingly. Verify the final collection type, population and every sample's forward/reverse dataset assignments against that mapping before reporting completion.
 
 ## Common Pitfalls (READ FIRST)
 
@@ -347,6 +357,8 @@ rules = {
 **Example 2: Parse paired-end RNA-seq filenames**
 
 Files: `sample1_R1.fastq.gz`, `sample1_R2.fastq.gz`
+
+Use this after the collection structure and mate mapping have been resolved as described in [Pairing imported reads](references/read-pairing.md). For a flat input collection, `add_column_metadata` puts `identifier0` in column **0**; there is no implicit dataset column in the rules table. Track column indices after each operation.
 
 ```python
 rules = {

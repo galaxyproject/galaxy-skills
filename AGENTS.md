@@ -58,7 +58,7 @@ If the user asks about Galaxy MCP, JupyterLite notebooks, or BioBlend automation
 
 ## Collection Manipulation
 
-If the user asks to transform, filter, sort, relabel, restructure, flatten, nest, merge, or otherwise manipulate Galaxy dataset collections:
+If the user asks to build a collection from imported reads, or to transform, filter, sort, relabel, restructure, flatten, nest, merge, or otherwise manipulate Galaxy dataset collections:
 
 - Skill:
   - `skills/collection-manipulation/SKILL.md` (single self-contained command)
@@ -68,6 +68,7 @@ If the user asks to transform, filter, sort, relabel, restructure, flatten, nest
   - `skills/collection-manipulation/references/apply-rules.md` (Apply Rules DSL deep-dive)
   - `skills/collection-manipulation/references/api-patterns.md` (Galaxy Tools API patterns)
   - `skills/collection-manipulation/references/test-patterns.md` (real test patterns from Galaxy test suite)
+  - `skills/collection-manipulation/references/read-pairing.md` (deciding list vs paired structure for imported reads, verifying mate assignments)
 
 All operations must use Galaxy's native tools for reproducibility and workflow compatibility.
 
