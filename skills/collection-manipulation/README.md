@@ -21,6 +21,7 @@ Based on [jmchilton/galaxy-agentic-collection-transform](https://github.com/jmch
 | `references/apply-rules.md` | Apply Rules DSL deep-dive |
 | `references/api-patterns.md` | Galaxy Tools API patterns |
 | `references/test-patterns.md` | Real test patterns from Galaxy test suite |
+| `references/read-pairing.md` | Deciding list vs paired structure for imported reads, verifying mate assignments |
 
 ## Usage
 

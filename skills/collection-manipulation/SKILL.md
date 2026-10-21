@@ -1,6 +1,6 @@
 ---
 name: collection-manipulation
-description: Create and transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when organizing imported reads into collections, choosing list or paired structure, filtering, sorting, relabeling, restructuring, flattening, nesting or merging collections, or mapping a tool over samples.
+description: Create and transform Galaxy dataset collections reproducibly using Galaxy's native tools. Use when organizing imported reads into collections, choosing list or paired structure, filtering, sorting, relabeling, restructuring, flattening, nesting or merging collections, mapping a tool over samples, or working with element identifiers.
 metadata:
   surfaces: [loom]
 user_invocable: true
