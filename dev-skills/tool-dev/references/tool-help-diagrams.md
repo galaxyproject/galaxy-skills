@@ -2,6 +2,10 @@
 
 Hand-coded SVG schematics that show input → operation → output for Galaxy tools. Embedded in tool XML `<help>` sections via reStructuredText `.. image::` directives.
 
+**Embedding a diagram means RST help.** Galaxy rewrites `.. image::` paths to the tool's `static/images/` directory only for reStructuredText help (still true in 26.2). In `<help format="markdown">` the image does not resolve. So a tool that ships a help image keeps RST help for the whole section, even though Markdown is otherwise preferred for new tools (`../SKILL.md` Section 2). Do not convert an RST help section that contains images to Markdown.
+
+**Standard:** [tool_xml: Including Images](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/tool_xml.html#including-images).
+
 ## Where Diagrams Live
 
 **Built-in tools** (tools bundled with the Galaxy codebase):
@@ -26,15 +30,19 @@ tool_collections/bamtools/bamtools_filter/static/images/complex-filters.png
 
 ## How to Embed in Tool XML
 
-Inside the `<help>` section (reStructuredText):
+Inside an RST `<help>` section (no `format` attribute, or `format="restructuredtext"`; not `format="markdown"`):
 
-**External tools** — use `$PATH_TO_IMAGES` (resolves to the tool's `static/images/` dir):
+**External tools** -- reference the bare filename, as the IUC standards do. Galaxy resolves it to the tool's `static/images/` directory:
 
 ```rst
-.. image:: $PATH_TO_IMAGES/my_diagram.svg
+.. image:: my_diagram.svg
   :alt: Description of the diagram
   :width: 500
 ```
+
+The older form `.. image:: $PATH_TO_IMAGES/my_diagram.svg` still works: Galaxy strips the `$PATH_TO_IMAGES` prefix before resolving the path, and its own comment calls the prefix no longer required. Most existing tools-iuc help sections still use it. When editing an existing tool, keep whichever form it has; for a new tool use the bare filename.
+
+> **Verify:** the path rewriting was read from a Galaxy 26.1 development checkout (`set_image_paths`), where it runs for tools installed from a Tool Shed. A local `planemo serve` may therefore show a broken image even when the directive is right. Check a sibling tool with images the same way before concluding the path is wrong.
 
 **Built-in Galaxy tools** — use `${static_path}` (resolves to Galaxy's central static dir):
 
@@ -180,7 +188,7 @@ When a tool has multiple usage patterns (e.g., build_list):
 
 8. **Save as SVG** in `<tool_dir>/static/images/` (external tools) or `static/images/tools/<category>/` (built-in tools).
 
-9. **Add `.. image::` directive** to the tool's `<help>` section.
+9. **Add `.. image::` directive** to the tool's `<help>` section, which must be RST (see the top of this file).
 
 ## Complete Example: Filter Empty
 
@@ -270,5 +278,6 @@ A simple 1-input → 1-output diagram highlighting the removed element:
 - [ ] Uses 2–3 example elements (not more)
 - [ ] Bottom annotation explains the transformation
 - [ ] Saved to `static/images/` (external tools) or `static/images/tools/<category>/` (built-in)
-- [ ] `.. image::` directive added to tool `<help>` using `$PATH_TO_IMAGES` (external) or `${static_path}` (built-in), with `:alt:` and `:width:`
+- [ ] Tool `<help>` is RST, not `format="markdown"`
+- [ ] `.. image::` directive added to tool `<help>` using the bare filename (external) or `${static_path}` (built-in), with `:alt:` and `:width:`
 - [ ] Renders correctly in a browser before committing

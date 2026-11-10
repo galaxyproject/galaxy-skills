@@ -27,6 +27,7 @@ Where should I create this tool?
 **Repository**: https://github.com/galaxyproject/tools-iuc
 
 **Create here when**:
+- The software is under an OSI-approved license and nothing it needs (dependencies, models, reference data) carries a use restriction. This is a gate, not a preference: check it before writing anything. See [Licensing and Use Restrictions](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/licensing.html)
 - Tool is widely used in the community
 - Tool is well-maintained upstream
 - Tool would benefit multiple users
@@ -43,19 +44,20 @@ Where should I create this tool?
 1. Check existing PRs — someone may already be working on it
 2. Open an issue to discuss the tool before implementing
 3. Fork the repository
-4. Create tool following IUC guidelines (see `../SKILL.md`)
-5. Submit PR
-6. Address review feedback
+4. Create tool following the [IUC standards](https://galaxy-iuc-standards.readthedocs.io/en/latest/) (how-to in `../SKILL.md`)
+5. Run the four pre-PR passes (`../SKILL.md` Section 10) and put the result in the PR description
+6. Submit PR
+7. Address review feedback
 
-**IUC requirements**:
+**IUC requirements** (summary only; the standards are authoritative, and the target repo's own convention wins where it differs):
 - Follow directory structure: `tools/toolname/`
-- Include `macros.xml` for version tokens
+- Version from `@TOOL_VERSION@` / `@VERSION_SUFFIX@` tokens. A shared `macros.xml` only when two or more tools share something; a single tool can keep tokens inline
 - Include comprehensive tests with `expect_num_outputs` and `assert_contents`
-- Test data under 1 MB
-- Write clear help section (`format="markdown"`)
+- Test data: aim for under 1 MB. Unavoidable large inputs go to the Galaxy Tool Developers Zenodo community and are referenced with `location=`
+- Write a clear help section. Markdown (`format="markdown"`, profile >= 24.2) is preferred for new tools; use RST when the tool ships help images or the repo's sibling tools use RST. Existing RST help need not be converted
 - Add citations (`type="doi"`)
 - Use `argument=` on CLI-mapped params
-- Bioconda/conda-forge dependencies
+- Bioconda/conda-forge dependencies, pinned by version
 
 ---
 
@@ -123,9 +125,11 @@ Regardless of where you create the tool:
 
 **Required**: valid XML structure, version information, at least one test case, help section, proper input/output definitions.
 
-**Recommended**: multiple test cases, comprehensive help, citations, macros for version tokens, proper error handling.
+**Recommended**: multiple test cases, comprehensive help, citations, version tokens, proper error handling.
 
-**Best practice**: test data < 1 MB, flexible test assertions, clear parameter descriptions, sensible defaults.
+**Best practice**: test data under 1 MB where possible, flexible test assertions, clear parameter descriptions, sensible defaults.
+
+The security and remote-execution passes in `../SKILL.md` Section 10 apply wherever the tool will run on a shared server, not only to tools-iuc submissions.
 
 ---
 
