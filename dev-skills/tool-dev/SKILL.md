@@ -533,7 +533,7 @@ What may still appear in a code configfile: the values row two of the table abov
 
 JSON through `<configfiles><inputs>` is one way to hand values over. Command-line arguments are the other, and for R usually the cheaper one, since reading JSON needs `jsonlite` and a second requirement means a mulled container (Section 9). Section 6 has the worked example.
 
-The wrapped tool can reopen the hole by itself. If it, or the wrapper, builds a second command line or script out of values found *inside* a dataset (sample names, contig names, VCF INFO fields, read groups), quoting in `<command>` does not reach those values and none of the 10a greps can see them. Find out before wrapping: does the tool write a script, call `system()`, or build file paths from names in its input? If so, validate those names before the tool runs, or run the generated commands as argument vectors and not through a shell.
+The wrapped tool can reopen the hole by itself. If it, or the wrapper, builds a second command line or script out of values found *inside* a dataset (sample names, contig names, VCF INFO fields, read groups), quoting in `<command>` does not reach those values and none of the 10a greps can see them. Find out before wrapping: does the tool write a script, call `system()`, or build file paths from names in its input? If so, validate those names before the tool runs, or run the generated commands as argument vectors and not through a shell. How much validation depends on where the names go: a name that only becomes part of a file path needs no path separator in it; a name that reaches a shell needs a closed, safe alphabet. The upstream source is what tells you which (10a item 1b).
 
 ### Keep Cheetah Side-Effect Free
 
@@ -1084,7 +1084,7 @@ See `references/testing.md` for the full assertion reference, collection testing
 - Point expected files to unique golden files — no duplicate outputs for different logic paths
 - Always include `expect_num_outputs` — count only outputs actually produced (filters that evaluate to False don't produce output)
 - **Test data: aim for under 1 MB in total.** Shrink or downsample inputs first. For large *outputs*, assert on content (`<has_text>`, `<has_size>`, `compare="contains"`) instead of committing a golden file. For a large *input* that cannot be made smaller, deposit it in the [Galaxy Tool Developers Zenodo community](https://zenodo.org/communities/galaxy_tool_dev_sig) and reference it with `location=` (see below). Assertions do not solve large inputs.
-- **Always include a defaults-only test**: required inputs and nothing else. It catches template errors (a bad conditional, a missing default, a filter that never fires) that every other test steps around by setting the parameter
+- **Always include a defaults-only test**: required inputs and nothing else, taking the default branch of every conditional. When the default branch reads a data table, use the test data table (`references/testing.md`) and do not switch the conditional to get around it. It catches template errors (a bad conditional, a missing default, a filter that never fires) that every other test steps around by setting the parameter
 - Include tests for output filters to verify filtering actually occurs
 - Include a test for an error condition with `expect_failure="true"` when the wrapper has one of its own: a check it adds, or an input the tool rejects with a clear message. It has to fail at runtime. A parameter value that a validator rejects cannot be a test, because `planemo lint` fails it: an error on profile 24.2 or later, a warning below, and the default `--fail_level warn` fails on both (`references/testing.md`). If the tool has no failure worth pinning, record N/A with the reason; do not contrive one
 - For every free-text parameter, test the awkward values it accepts (`references/testing.md`, Hostile-Input Test)
@@ -1126,7 +1126,7 @@ Test conditionals and sections with explicit nesting (not pipe syntax):
 
 ### Running Tests
 
-Run `planemo test --biocontainers` to execute tests. If the session cannot reach Docker or cannot start Galaxy (no container socket, no permission to bind a port), stop and report the error: record the tests as not run, never as passed, and do not fall back to a different kind of run without saying so. See **Reference: Useful Planemo Commands** at the end of this document for the full command set. If the run fails before any test starts, check the Gotchas in `references/testing.md` (Galaxy Python version, missing mulled image).
+Run `planemo test --biocontainers` to execute tests. If the session cannot reach Docker or cannot start Galaxy (no container socket, no permission to bind a port), do not work around it: report the error, record the tests as not run, never as passed, and do not fall back to a different kind of run without saying so. See **Reference: Useful Planemo Commands** at the end of this document for the full command set. If the run fails before any test starts, check the Gotchas in `references/testing.md` (Galaxy Python version, missing mulled image).
 
 ### Generating Expected Output Files
 
@@ -1194,14 +1194,14 @@ suite:
 **Standard:** [package_xml][std-package].
 
 - Requirements must be available in **conda-forge** or **bioconda** channels, referenced by name **and version**. Use the latest stable versions.
-- List only what the wrapper itself calls. The main package brings its own dependencies; a requirement for something the wrapper never invokes gets "is this used?". Pin a transitive dependency only to work around a real conflict, with an XML comment saying which. The integration checklist says "the tool and its dependencies"; this skill reads that as what the wrapper calls directly.
+- List the main package and what the wrapper's own command calls beyond it (`gawk`, `samtools` for a sort step). Do not list a library just because the main package imports it. A program the wrapper calls that only arrives as a dependency of the main package (a tool that brings its own `bwa` or `python`) is a judgment call: listing it survives upstream dropping the dependency but turns a single-package container into a mulled one. Follow sibling tools and say in the PR which you chose. In a suite, reviewers prefer one shared set of requirements, so every tool runs in the same environment, even when one tool does not use every package. A requirement that nothing in the suite calls gets "is this used?". Pin a transitive dependency only to work around a real conflict, with an XML comment saying which. The integration checklist says "the tool and its dependencies"; this skill reads that as what the wrapper calls directly.
 - A tool with one requirement gets its BioContainer automatically. A tool with **two or more** requirements needs a mulled container for that exact combination, which is only built once the combination is registered ([Multi-requirement containers][std-package-mulled]). For repositories tracked by planemo-monitor (tools-iuc is the usual case) that registration happens automatically once the tool is merged, so `planemo test --biocontainers` can fail locally on a new combination with no image on quay. Build it locally (see Gotchas in `references/testing.md`) and say so in the hand-back.
 
 ### Versioning and Lint Hygiene
 
 - The version-bump rule is in Section 11.
 - If a `.lint_skip` file exists in the tool directory, try to fix the underlying issues and remove the skip entries rather than adding to them.
-- Run `planemo lint` after every change. It catches element ordering, missing attributes, and parameter mismatches. Lint looks up the bio.tools xref online, so without network access it warns "No entry ... in bio.tools" for an entry that exists.
+- Run `planemo lint` after every change. It catches element ordering, missing attributes, and parameter mismatches. Lint looks up the bio.tools xref online, so without network access it warns "No entry ... in bio.tools" for an entry that exists, and at the default fail level that warning makes the run print "Failed linting" and exit 1. Record that as pass with the warning explained. `planemo shed_lint` needs the Tool Shed and dies with a connection error without it: record not verified.
 - `planemo format` is for new files. On a wrapper that has already been reviewed it can reflow the whole file, and it joins wrapped `label`/`help` attributes that the Coding Style allows to wrap. There, read `planemo format --dry-run` and apply only what you want.
 
 ---
@@ -1231,11 +1231,12 @@ grep -rnE  'curl|wget|https?://|requests\.|urllib' "$D" --include='*.xml' --incl
 grep -nE  'format="(html|svg)"' "${F[@]}"                                         # g10: active content
 ```
 
-Expect harmless hits: g1a lists output labels (`${on_string}`) and awk variables such as `\$NF`, g3 lists `${tool.name}` in labels, and g9 lists help links.
+Expect harmless hits: g1a lists output labels (`${on_string}`) and awk variables such as `\$NF`, g3 lists `${tool.name}` in labels, g7 lists `gunzip` (through `unzip`), and g9 lists help links.
 
 | # | Item | Check |
 |---|---|---|
-| 1 | [Single-quote dynamic values in shell commands][sec-1] | g1a: each reference in `<command>` and tokens is inside single quotes, or is an `integer`/`float`, a boolean `truevalue`, or a fixed-option `select`. No `"$param"`, and that includes `#set` variables derived from a param. Shell variables in double quotes (`"\$f"`, `"\${GALAXY_SLOTS:-1}"`) are correct. g1b: no parameter is interpolated into the inner program; a fixed inline program with fixed arguments passes. Also answer in one line: does the tool or the wrapper build a second command line, script, or file path from values inside a dataset (Section 4)? |
+| 1 | [Single-quote dynamic values in shell commands][sec-1] | g1a: each reference in `<command>` and tokens is inside single quotes, or is an `integer`/`float`, a boolean `truevalue`, or a fixed-option `select`. No `"$param"`, and that includes `#set` variables derived from a param. Shell variables in double quotes (`"\$f"`, `"\${GALAXY_SLOTS:-1}"`) are correct. g1b: no parameter is interpolated into the inner program; a fixed inline program with fixed arguments passes. |
+| 1b | Values from inside datasets (skill-side; extends [item 1][sec-1]) | Does the tool or the wrapper build a second command line, a script, or a file path from values inside a dataset (Section 4)? Settle it from the upstream source, not from `--help`: search it for `os.system`, `subprocess`, `shell=True`, `popen`, `system(` and for file names built from header or record fields. No: pass. Paths only: the wrapper rejects names with a path separator before the tool runs, with a test. A shell: the wrapper restricts the names to a safe alphabet, or the feature is not offered. Source not read: not verified. |
 | 2 | [Constrain free text to the smallest useful language][sec-2] | g2: for each text param, could it be a typed param or a `select`? If not, it has a regex validator anchored at both ends, or a written reason. No sanitizer admits `'`. The accepted awkward values are tested (`references/testing.md`); a rejected value is shown by the lint error or a manual run, not by a `<test>`. |
 | 3 | [Treat identifiers and generated filenames as untrusted][sec-3] | g3: each use is not a filename, or was replaced by a fixed filename, or goes through `#import re` + `str()` + `re.sub` + collision handling. Every one is single-quoted at the shell. |
 | 4 | [Preserve sanitization through Cheetah expressions][sec-4] | g4: every method call on a text param is on `str($param)`, and each result that reaches the shell is single-quoted. No `sanitize="false"` without a validator and a reason. |
@@ -1256,12 +1257,12 @@ Expect harmless hits: g1a lists output labels (`${on_string}`) and awk variables
 | 2 | ID, name, version, description | Follow [Tool ids][std-ids], [Tool versions][std-versions]; `<description>` present. Version is built from tokens. |
 | 3 | Requirements | Every `<requirement>` has a `version`. Two or more requirements: mulled container noted (Section 9). |
 | 4 | Version command | `<version_command>` runs the tool's real version command. |
-| 5 | Security review | Pass 10a is complete. |
+| 5 | Security review | Pass 10a is complete: every item has a result, and any "not verified" is named in the hand-back. |
 | 6 | Outputs | Optional outputs use `<filter>`; each filter has a test where it is true and one where it is false. |
-| 7 | Tests | At least one test per code path, each with `expect_num_outputs`, and one that sets only the required inputs. An expected-failure test for each failure the wrapper itself detects, or N/A with the reason (the standards do not require one; this is skill-side). |
+| 7 | Tests | At least one test per code path, each with `expect_num_outputs` (expected-failure tests excepted), and one that sets only the required inputs. An expected-failure test for each failure the wrapper itself detects, or N/A with the reason (the standards do not require one; this is skill-side). |
 | 8 | Help | `<help>` exists, is in CDATA, and is valid in the one format it declares (Section 2). For Markdown, lint is not that check: confirm it starts at column 0 and has no RST leftovers, and look at it in `planemo serve` or record the rendering as not verified. The checklist at the pinned commit says reStructuredText; Markdown rests on [PR #95][std-pr95] and review practice. |
 | 9 | Citation | `<citations>` present, DOI preferred. |
-| 10 | Built-in data | N/A unless a data table is used. Otherwise all four files from Section 5 exist: `ls tool-data/*.loc.sample tool_data_table_conf.xml.sample tool_data_table_conf.xml.test test-data/*.loc`. |
+| 10 | Built-in data | N/A unless a data table is used. Otherwise all four files from Section 5 exist; from the tool directory: `ls tool-data/*.loc.sample tool_data_table_conf.xml.sample tool_data_table_conf.xml.test test-data/*.loc`. |
 | 11 | Order and indentation | Elements and param attributes in the [Coding Style][std-style] order; 4 spaces. `planemo lint` clean; `planemo format --dry-run` proposes nothing beyond serialisation changes such as re-joined `label`/`help` attributes (Section 9). |
 | 12 | Test data size | `du -sh tools/mytool/test-data`. Over 1 MB: shrunk, replaced by assertions, or moved to Zenodo with `location=`. State the size. |
 | 13 | `planemo lint` | Passes with no errors; warnings are fixed or explained. |
@@ -1285,6 +1286,7 @@ Expect harmless hits: g1a lists output labels (`${on_string}`) and awk variables
 | 6 | [Keep discovered outputs inside the job working directory][pulsar-6] | r5: every `from_work_dir` and `discover_datasets directory=` is a relative path under the working directory. |
 
 ```bash
+D="tools/mytool"; F=("$D"/*.xml)    # repeated: a new shell does not keep them, and with F unset grep reads stdin and prints nothing
 grep -n   '__tool_directory__' "${F[@]}"                                       # r1
 grep -rnE '/(tmp|data|mnt|opt|usr|home|scratch)/' "$D" --include='*.xml' --include='*.py' --include='*.R'   # r4
 grep -nE  'ln -s|from_work_dir|discover_datasets' "${F[@]}"                    # r5
@@ -1317,14 +1319,15 @@ Reviewer habits and wrapper conventions not already covered by 10a-10c. Rows tha
 | Missing compressed format support | "Are fasta.gz supported?" | `format="fasta,fasta.gz"`, decompress in `<command>` if the tool cannot |
 | Missing bio.tools xref | "Add bio.tools cross-reference" | Add `<xrefs><xref type="bio.tools">id</xref></xrefs>` |
 | Unpinned `python` requirement | "we pin python" | Add `version=` |
+| Different requirements per tool in a suite | "My preference is always a common set of requirements for all tools" | One shared `requirements` macro, so there is one environment and one container |
 | Unquoted shell variable | "Add double quotes for bash vars" | `--threads "\${GALAXY_SLOTS:-1}"` |
 | `#if $select_param` on a True/False select | "Always true" | `#if str($param) == "True"`, with the option's casing (Section 4) |
 | Comma-split list without dropping empty entries | "A trailing comma gives an empty string" | `[x.strip() for x in str($param).split(',') if x.strip()]` |
 | Unanchored `discover_datasets` pattern | "Anchor the pattern" | End the regex with `$` (Section 2) |
-| Missing defaults-only test | "Add a test with default parameters" | One test per tool with required inputs only |
+| Missing defaults-only test | "Add a test with default parameters" | One test per tool with required inputs only, on the default branch of each conditional |
 | Optional seed or similar with no default | "Set an explicit default" | A fixed seed such as `value="42"`, drop `optional`. Check what 0 means upstream: some tools (HMMER) treat it as "pick one at random" |
 | Apostrophe in a text param's default | "The sanitizer rewrites quotes" | Quote-free values: the default sanitizer turns `'` into `__sq__` (`Cohens_d`, not `Cohen's d`) |
-| Requirement the wrapper never calls, or an unexplained pin | "Is this dependency used?" | Remove it; pin a transitive dependency only with a comment naming the conflict |
+| Requirement that nothing in the suite calls, or an unexplained pin | "Is this dependency used?" | Remove it; pin a transitive dependency only with a comment naming the conflict |
 | Help names another Galaxy tool loosely | "That's not what the tool is called" | Use the other tool's exact name as shown in the tool panel |
 | Data changed in the script with no explanation | "Why is this converted here?" | Comment the reason at that line; convert only when needed (Section 6) |
 
@@ -1442,7 +1445,7 @@ Also check `bioconda` and `conda-forge` for an existing recipe — if none exist
 
 **Licensing.** **Standard:** [licensing][std-licensing], items [1][lic-osi] to [3][lic-redistribution]. The IUC accepts wrappers for software under an OSI-approved license, and the PR template asks you to confirm the license permits unrestricted use. Before writing anything:
 
-- Find the license of the wrapped software and confirm it is OSI-approved. If it is not, stop and ask the human; wrapper engineering does not fix this. Read the license text itself: the `LICENSE` file in the upstream repository, or `info/licenses/` inside the conda package. The one-word label in the Bioconda recipe or on GitHub is not enough, because a standard license under a "for academic and non-profit use only" preamble still gets a standard-looking label.
+- Find the license of the wrapped software and confirm it is OSI-approved. If it is not, stop and ask the human; wrapper engineering does not fix this. Read the license text itself: the `LICENSE` file in the upstream repository, `info/licenses/` inside the conda package, or the license file shipped in the Bioconda recipe directory. For dependencies, the recipe labels of the direct run dependencies are enough unless one looks unusual; then read that one too. The one-word label in the Bioconda recipe or on GitHub is not enough, because a standard license under a "for academic and non-profit use only" preamble still gets a standard-looking label.
 - Check the other layers: dependencies, and any reference data or models the tool needs. An open-source tool can depend on a restricted model or database.
 - Confirm redistribution is permitted (normally: a Bioconda package exists or can exist).
 - The `license` attribute on `<tool>` describes the wrapper, not the wrapped software. Do not use it to record the upstream license.
