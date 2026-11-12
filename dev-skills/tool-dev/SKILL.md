@@ -307,6 +307,17 @@ For tools producing variable numbers of output files, use `discover_datasets`. T
 </collection>
 ```
 
+With a hand-written pattern, anchor the end with `$`, and write the `<` and `>` of the named group as `&lt;` and `&gt;` (it is an XML attribute). An unanchored pattern can match part of a longer filename and split the collection wrongly. Two collections can read the same directory when their patterns pick different extensions:
+
+```xml
+<collection name="results_tsv" type="list" label="${tool.name} on ${on_string}: tables">
+    <discover_datasets pattern="(?P&lt;designation&gt;.+)\.tsv$" format="tabular" directory="output"/>
+</collection>
+<collection name="results_logs" type="list" label="${tool.name} on ${on_string}: logs">
+    <discover_datasets pattern="(?P&lt;designation&gt;.+)\.log$" format="txt" directory="output"/>
+</collection>
+```
+
 ### Help Section
 
 **Standard:** [Help tag][std-help], which describes reStructuredText only at the pinned commit; Markdown as the preferred format for new tools is proposed in [PR #95][std-pr95]. Reviewers already offer it ("you can use markdown if this is any easier") and nobody asks for conversion either way.
@@ -534,6 +545,23 @@ For select params, use string comparison:
     --advanced-flag
 #end if
 ```
+
+A select is never a boolean, even when its options are `True` and `False`: any non-empty string is truthy, so `#if $report` on a select is always true. Compare the string, with the casing of the `<option value>`:
+
+```
+## BAD: always true, the value is the string "False"
+#if $reporting.report
+## GOOD
+#if str($reporting.report) == "True"
+```
+
+A text param holding a comma-separated list needs its empty entries dropped, because users leave trailing commas (`HK1,HK2,`):
+
+```
+#set $names = [x.strip() for x in str($var_names).split(',') if x.strip()]
+```
+
+The same rules apply in a `<configfile>`.
 
 ### Boolean Parameters
 
@@ -838,12 +866,52 @@ Reviewer habits and style points. The first, third, and fifth are skill-side obs
 
 **Standard:** [Coding Style][std-style] (Python 3, PEP 8, smarkets import order); [integration_checklist][std-checklist] (flake8 in IUC CI).
 
-Add a wrapper script only when:
+Wrappers come in three shapes, and the shape decides whether there is a script at all:
+
+| Upstream is | Shape | Examples |
+|---|---|---|
+| A command-line program | Call it directly in `<command>`; params map to flags with `argument=`. No script | samtools, bedtools |
+| An R package with no CLI | An R script the wrapper ships or generates, run with `Rscript` | DESeq2, dupRadar |
+| A Python library with no CLI | A Python script the wrapper ships or generates, run with `python` | scanpy, squidpy |
+
+For a CLI program, add a wrapper script only when:
 
 - The CLI output format doesn't match what Galaxy expects (needs conversion)
 - You need multi-step pipelines that are too complex for shell in the command block
 - The tool wraps an API rather than a CLI binary
 - You need per-item error handling with partial results
+
+### Tools Without a CLI (R and Python Libraries)
+
+The script is code, so user values reach it as data (Section 4): as arguments, or as JSON from `<configfiles><inputs>`. The script itself is either a file shipped next to the wrapper and declared in `<required_files>`, or an inline `<configfile>` when it is short. Arguments, with an inline R script:
+
+```xml
+<command detect_errors="aggressive"><![CDATA[
+    ln -s '$input' input.bam &&
+    Rscript '$script' input.bam '$sample_label' $stranded \${GALAXY_SLOTS:-1} '$output'
+]]></command>
+<configfiles>
+    <configfile name="script"><![CDATA[
+args <- commandArgs(trailingOnly = TRUE)
+bam <- args[1]
+label <- args[2]
+stranded <- as.integer(args[3])
+threads <- as.integer(args[4])
+out <- args[5]
+suppressPackageStartupMessages(library(mypackage))
+res <- mypackage::analyze(bam, stranded = stranded, threads = threads)
+write.table(res, out, sep = "\t", quote = FALSE, row.names = FALSE)
+    ]]></configfile>
+</configfiles>
+```
+
+No `$param` appears in the script, so nothing a user types is parsed as R. The Python form is the same with `sys.argv` or `argparse`. Points that apply to both:
+
+- A literal `$` in the script (R's `df$column`) is written `\$`, and `##`, or a `#` directly followed by a directive name such as `#set`, is escaped with `\#` (Section 4, Field Gotchas). Once a script needs many of those, or has no Cheetah left in it, ship it as a file instead.
+- Threads come from `GALAXY_SLOTS`, passed as an argument as above or read in the script (`Sys.getenv("GALAXY_SLOTS", "1")`, `os.environ.get("GALAXY_SLOTS", "1")`).
+- Progress and logging go to stderr. `suppressPackageStartupMessages()` keeps R's load messages out of it.
+- `detect_errors` follows the same rule as for any tool (Section 2). Libraries that print warnings are not a reason for `exit_code`; a library that prints `error:` on a successful run is.
+- When the script changes the data beyond what the user asked for (converting a sparse matrix, replacing `.X`, dropping rows), comment why at that line. Reviewers ask.
 
 ### When You Do Need a Script
 
@@ -930,6 +998,16 @@ In the command block:
 --threads \${GALAXY_SLOTS:-1}
 ```
 
+Libraries that start their own thread pools ignore a `--threads` flag, or have none. Cap them through their environment variables, or a job on a shared node takes every core:
+
+```
+export OMP_NUM_THREADS="\${GALAXY_SLOTS:-1}" &&
+export NUMBA_NUM_THREADS="\${GALAXY_SLOTS:-1}" &&
+mytool ...
+```
+
+`OMP_NUM_THREADS` covers OpenMP code (much of numpy, scipy and R's BLAS); `NUMBA_NUM_THREADS` covers numba (scanpy, squidpy and friends); `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` exist for those backends. Set only the ones the tool's stack uses.
+
 ### Memory
 
 If the upstream CLI has no hard memory limit, surface the parameter that proxies it best (chunk size, hash table size, block size) and set conservative defaults. Don't expose raw memory flags.
@@ -981,9 +1059,11 @@ See `references/testing.md` for the full assertion reference, collection testing
 - Point expected files to unique golden files — no duplicate outputs for different logic paths
 - Always include `expect_num_outputs` — count only outputs actually produced (filters that evaluate to False don't produce output)
 - **Test data: aim for under 1 MB in total.** Shrink or downsample inputs first. For large *outputs*, assert on content (`<has_text>`, `<has_size>`, `compare="contains"`) instead of committing a golden file. For a large *input* that cannot be made smaller, deposit it in the [Galaxy Tool Developers Zenodo community](https://zenodo.org/communities/galaxy_tool_dev_sig) and reference it with `location=` (see below). Assertions do not solve large inputs.
+- **Always include a defaults-only test**: required inputs and nothing else. It catches template errors (a bad conditional, a missing default, a filter that never fires) that every other test steps around by setting the parameter
 - Include tests for output filters to verify filtering actually occurs
-- Include tests for error conditions with expected failure
-- Include a hostile-input test for every free-text parameter (`references/testing.md`)
+- Include a test for an error condition with `expect_failure="true"` when the wrapper has one of its own: a check it adds, or an input the tool rejects with a clear message. It has to fail at runtime. A parameter value that a validator rejects cannot be a test on profile 24.2 or later, because `planemo lint` fails it (`references/testing.md`). If the tool has no failure worth pinning, record N/A with the reason; do not contrive one
+- For every free-text parameter, test the awkward values it accepts (`references/testing.md`, Hostile-Input Test)
+- For a wide matrix whose columns depend on the upstream model or database, assert the column count and a few known headers (`has_n_columns`, `has_text_matching`) instead of comparing the whole file
 
 Large input from Zenodo:
 
@@ -1070,15 +1150,16 @@ auto_tool_repositories:
   description_template: "Wrapper for MyTool application: {{ tool_name }}."
 suite:
   name: "suite_mytool"
-  description: "A suite of Galaxy tools for MyTool."
+  description: "Short one-line description"
   type: repository_suite_definition
 ```
 
 **Key points:**
 - `auto_tool_repositories` creates one Tool Shed repo per tool XML automatically
 - `suite` groups all tools under a single installable suite. Let planemo generate it; do not hand-write a suite for one set of related tools
-- `owner: iuc` for tools-iuc submissions
-- `remote_repository_url` should point to the tools-iuc path (the final location)
+- The suite `description` repeats the top-level description. Generic text ("A suite of Galaxy tools for MyTool.") gets flagged
+- `owner: iuc` for tools-iuc submissions. Another repository has its own owner; copy it from a sibling tool there
+- `remote_repository_url` should point to the tool's path in the target repository (the final location)
 - Repository names cannot contain periods; a tool repo is `$name`, a suite `suite_$name`
 - `include` / `exclude` for shared or oversized files: see [shed_yml][std-shed]
 - Check the file with `planemo shed_lint tools/mytool/`. Do not run any `shed_create` / `shed_upload` / `shed_update` command: IUC CI publishes after merge
@@ -1088,6 +1169,7 @@ suite:
 **Standard:** [package_xml][std-package].
 
 - Requirements must be available in **conda-forge** or **bioconda** channels, referenced by name **and version**. Use the latest stable versions.
+- List only what the wrapper itself calls. The main package brings its own dependencies; a requirement for something the wrapper never invokes gets "is this used?". Pin a transitive dependency only to work around a real conflict, with an XML comment saying which. The integration checklist says "the tool and its dependencies"; this skill reads that as what the wrapper calls directly.
 - A tool with one requirement gets its BioContainer automatically. A tool with **two or more** requirements needs a mulled container for that exact combination, which is only built once the combination is registered ([Multi-requirement containers][std-package-mulled]). For repositories tracked by planemo-monitor (tools-iuc is the usual case) that registration happens automatically once the tool is merged, so `planemo test --biocontainers` can fail locally on a new combination with no image on quay. Build it locally (see Gotchas in `references/testing.md`) and say so in the hand-back.
 
 ### Versioning and Lint Hygiene
@@ -1207,6 +1289,15 @@ Reviewer habits and wrapper conventions not already covered by 10a-10c. Rows tha
 | Missing compressed format support | "Are fasta.gz supported?" | `format="fasta,fasta.gz"`, decompress in `<command>` if the tool cannot |
 | Missing bio.tools xref | "Add bio.tools cross-reference" | Add `<xrefs><xref type="bio.tools">id</xref></xrefs>` |
 | Unpinned `python` requirement | "we pin python" | Add `version=` |
+| `#if $select_param` on a True/False select | "Always true" | `#if str($param) == "True"`, with the option's casing (Section 4) |
+| Comma-split list without dropping empty entries | "A trailing comma gives an empty string" | `[x.strip() for x in str($param).split(',') if x.strip()]` |
+| Unanchored `discover_datasets` pattern | "Anchor the pattern" | End the regex with `$` (Section 2) |
+| Missing defaults-only test | "Add a test with default parameters" | One test per tool with required inputs only |
+| Optional seed or similar with no default | "Set an explicit default" | A fixed seed such as `value="42"`, drop `optional`. Check what 0 means upstream: some tools (HMMER) treat it as "pick one at random" |
+| Apostrophe in a text default or option value | "The sanitizer rewrites quotes" | Quote-free values: the default sanitizer turns `'` into `__sq__` (`Cohens_d`, not `Cohen's d`) |
+| Requirement the wrapper never calls, or an unexplained pin | "Is this dependency used?" | Remove it; pin a transitive dependency only with a comment naming the conflict |
+| Help names another Galaxy tool loosely | "That's not what the tool is called" | Use the other tool's exact name as shown in the tool panel |
+| Data changed in the script with no explanation | "Why is this converted here?" | Comment the reason at that line; convert only when needed (Section 6) |
 
 #### Commonly Requested Improvements
 
