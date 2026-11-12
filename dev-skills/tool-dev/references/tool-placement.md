@@ -54,7 +54,7 @@ Where should I create this tool?
 - Version from `@TOOL_VERSION@` / `@VERSION_SUFFIX@` tokens. A shared `macros.xml` only when two or more tools share something; a single tool can keep tokens inline
 - Include comprehensive tests with `expect_num_outputs` and `assert_contents`
 - Test data: aim for under 1 MB. Unavoidable large inputs go to the Galaxy Tool Developers Zenodo community and are referenced with `location=`
-- Write a clear help section. Markdown (`format="markdown"`, profile >= 24.2) is preferred for new tools; use RST when the tool ships help images or the repo's sibling tools use RST. Existing RST help need not be converted
+- Write a clear help section. Markdown (`format="markdown"`, which needs a 24.2+ server, so give the tool a profile >= 24.2) is preferred for new tools; use RST when the tool ships help images or the repo's sibling tools use RST. Existing RST help need not be converted
 - Add citations (`type="doi"`)
 - Use `argument=` on CLI-mapped params
 - Bioconda/conda-forge dependencies, pinned by version

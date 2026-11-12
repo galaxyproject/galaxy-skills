@@ -157,7 +157,7 @@ Galaxy XML elements must appear in the standards' order. `planemo lint` checks i
 - `id`: [Tool ids][std-ids]. Prefix with the suite name for multi-tool suites (e.g., `bedtools_intersect`).
 - `name`: Human-readable, title case. How users and admins find the tool — be specific, not generic.
 - `version`: [Tool versions][std-versions]. Use `@TOOL_VERSION@+galaxy@VERSION_SUFFIX@` built from tokens (inline or in `macros.xml`, see Section 3), and reuse `@TOOL_VERSION@` in the `<requirement>`. Exception: a tool that is not a wrapper for one underlying tool omits the `+galaxy` suffix and uses any PEP 440 version. When to bump is in Section 11.
-- `profile`: [Tool profile][std-profile]. Use a recent profile, but not one newer than the major public servers run: Galaxy refuses to load a tool whose profile is newer than the server, so a newer profile is not a goal in itself ([PR #95][std-pr95]). Do not copy a number from this skill. A server reports its version at `/api/version` (for example `https://usegalaxy.org/api/version`). Look at what sibling tools in the target repo use, and go higher only when the wrapper needs a feature from a later profile (for example `format="markdown"` help needs 24.2). In a suite, put it in a `@PROFILE@` token so all tools move together; a single tool can set it inline.
+- `profile`: [Tool profile][std-profile]. Use a recent profile, but not one newer than the major public servers run: Galaxy refuses to load a tool whose profile is newer than the server, so a newer profile is not a goal in itself ([PR #95][std-pr95]). Do not copy a number from this skill. A server reports its version at `/api/version` (for example `https://usegalaxy.org/api/version`). Look at what sibling tools in the target repo use, and go higher only when the wrapper needs a later Galaxy (for example `format="markdown"` help is displayed from 24.2 on). In a suite, put it in a `@PROFILE@` token so all tools move together; a single tool can set it inline.
 
 ### bio.tools Cross-References
 
@@ -328,7 +328,7 @@ Pick the format by this table, then write in that format's idioms only:
 
 | Situation | Format |
 |---|---|
-| New tool, no help images | Markdown: `<help format="markdown">`. Galaxy supports it from 24.2, so the tool's profile must be >= 24.2 |
+| New tool, no help images | Markdown: `<help format="markdown">`. It needs a Galaxy server on 24.2 or later to display it. The profile does not switch it on, but a profile >= 24.2 makes sure only those servers load the tool |
 | New tool that ships help images | RST. Galaxy rewrites `.. image::` paths only for RST help (still true in 26.2), so images do not resolve in Markdown help |
 | Editing an existing RST tool | Keep RST. Convert only if you convert the whole help section, and only when the tool has no images. Existing RST tools need not convert. A tool that has never been released counts as new |
 | Target repo or brief asks for a format | That format, and note it in the hand-back |
@@ -1337,7 +1337,7 @@ Reviewer habits and wrapper conventions not already covered by 10a-10c. Rows tha
 |-------------|----------------|------------|
 | Validator on multi-select | "Add no_options validator" | `<validator type="no_options" message="..."/>` |
 | Help text structure | "Break this into sections" | Headings in Markdown help; titles or `-----` rules in RST help |
-| Help format | "You can use markdown if this is any easier" | New tool without images: `<help format="markdown">`, profile >= 24.2. Existing RST help: leave it |
+| Help format | "You can use markdown if this is any easier" | New tool without images: `<help format="markdown">`, with a profile >= 24.2 so only servers that can display it load the tool. Existing RST help: leave it |
 | Shared XML duplicated across a suite | "This can go in macros.xml" | Move to a macro; do not add a macro for something used once |
 | Consistent output labels | "Use standard label pattern" | `${tool.name} on ${on_string}` |
 | Test assert_contents | "Add content assertions, not just expect_num_outputs" | Add `<has_text>` checks |
