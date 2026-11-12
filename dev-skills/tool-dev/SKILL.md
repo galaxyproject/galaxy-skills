@@ -143,7 +143,7 @@ Galaxy XML elements must appear in the standards' order. `planemo lint` checks i
 </tool>
 ```
 
-`<configfiles>` and `<environment_variables>`, when used, go between `<command>` and `<inputs>`. Section 13 has the rest.
+`<environment_variables>` and then `<configfiles>`, when used, go between `<command>` and `<inputs>`, in that order. Section 13 has the rest.
 
 ### Tool Element Attributes
 
@@ -157,13 +157,13 @@ Galaxy XML elements must appear in the standards' order. `planemo lint` checks i
 - `id`: [Tool ids][std-ids]. Prefix with the suite name for multi-tool suites (e.g., `bedtools_intersect`).
 - `name`: Human-readable, title case. How users and admins find the tool — be specific, not generic.
 - `version`: [Tool versions][std-versions]. Use `@TOOL_VERSION@+galaxy@VERSION_SUFFIX@` built from tokens (inline or in `macros.xml`, see Section 3), and reuse `@TOOL_VERSION@` in the `<requirement>`. Exception: a tool that is not a wrapper for one underlying tool omits the `+galaxy` suffix and uses any PEP 440 version. When to bump is in Section 11.
-- `profile`: [Tool profile][std-profile]. Use a recent profile, but not one newer than the major public servers run: Galaxy refuses to load a tool whose profile is newer than the server, so a newer profile is not a goal in itself ([PR #95][std-pr95]). Do not copy a number from this skill. Look at what sibling tools in the target repo use, and go higher only when the wrapper needs a feature from a later profile (for example `format="markdown"` help needs 24.2). In a suite, put it in a `@PROFILE@` token so all tools move together; a single tool can set it inline.
+- `profile`: [Tool profile][std-profile]. Use a recent profile, but not one newer than the major public servers run: Galaxy refuses to load a tool whose profile is newer than the server, so a newer profile is not a goal in itself ([PR #95][std-pr95]). Do not copy a number from this skill. A server reports its version at `/api/version` (for example `https://usegalaxy.org/api/version`). Look at what sibling tools in the target repo use, and go higher only when the wrapper needs a feature from a later profile (for example `format="markdown"` help needs 24.2). In a suite, put it in a `@PROFILE@` token so all tools move together; a single tool can set it inline.
 
 ### bio.tools Cross-References
 
 **Standard:** [Tool cross-references][std-biotools].
 
-Link to the upstream tool's bio.tools entry with `<xrefs>`. Reference only the tool being wrapped, not its dependencies. Create the bio.tools entry if none exists (needs at least one EDAM Topic and Operation, specific terms rather than root terms). Improve EDAM annotation in the bio.tools entry, not with `edam_topics`/`edam_operations` elements in the XML -- the standards call that not recommended.
+Link to the upstream tool's bio.tools entry with `<xrefs>`. Reference only the tool being wrapped, not its dependencies. If no bio.tools entry exists, the standards say to create one (it needs at least one EDAM Topic and Operation, specific terms rather than root terms). That is a registry entry under a person's account, so an agent does not create it: leave `<xrefs>` out, say so in the hand-back, and let the human create the entry and add the xref. Improve EDAM annotation in the bio.tools entry, not with `edam_topics`/`edam_operations` elements in the XML -- the standards call that not recommended.
 
 ```xml
 <xrefs>
@@ -203,7 +203,9 @@ Tripwire: every text parameter, input path, and output path goes in **single** q
 - the tool prints `error:` or `exception:` text on stderr during normal, successful operation;
 - reporting errors is the tool's job (validators, linters, QC reporters).
 
-"The tool is chatty" is not a reason by itself. Check the actual stderr of a successful run for the two trigger strings before switching, and check what sibling tools for the same upstream do.
+"The tool is chatty" is not a reason by itself. Check the actual output of a successful run for the two trigger strings before switching, and check what sibling tools for the same upstream do. After a `planemo test` run, `tool_test_output.json` holds each job's stdout and stderr, so the check needs no new run. If the tool cannot be run in this session, grep the upstream source for the trigger strings and its exit calls instead, keep `aggressive` unless that turns something up, and record the decision as not verified by a run.
+
+A tool that exits 0 on failure and reports the problem only in its output needs more than either mode: check for the missing output in `<command>` (`&& test -f out.tsv`, or `test -s` when an empty file also means failure), or use `<stdio>` with a regex, which the standards allow for special requirements. Leave an existing `<stdio>` block alone unless you know why it is there.
 
 ```xml
 <!-- exit_code: mytool prints "0 error: none found" on stderr when a run succeeds -->
@@ -218,7 +220,7 @@ Wrap the command in CDATA and chain multiple commands with `&&`. Most tools call
         --input '$input_fastq'
         --reference '$reference'
         --output '$output_bam'
-        --threads \${GALAXY_SLOTS:-1}
+        --threads "\${GALAXY_SLOTS:-1}"
         #if str($min_quality):
             --min-quality $min_quality
         #end if
@@ -246,7 +248,7 @@ When the CLI can't produce the output Galaxy needs (format conversion, multi-ste
 ]]></command>
 ```
 
-**`version_command`:** use the tool's real version command (`mytool --version`). Reviewers always ask for the real command. `echo @TOOL_VERSION@` is a fallback only for tools with no way to print a version. Wrap it in CDATA when it contains `&` or `<`, for example when the version goes to stderr:
+**`version_command`:** use the tool's real version command (`mytool --version`). Reviewers always ask for the real command. `echo @TOOL_VERSION@` is a fallback only for tools with no way to print a version. Asking the tool counts as real even without a `--version` flag: parse the usage banner (`mytool 2>&1 | sed -n 's/^mytool v//p'`), or ask the package (`python -c "from importlib.metadata import version; print(version('mypkg'))"`, `Rscript -e 'cat(as.character(packageVersion("mypkg")))'`). Wrap it in CDATA when it contains `&` or `<`, for example when the version goes to stderr:
 
 ```xml
 <version_command><![CDATA[mytool --version 2>&1 | head -n 1]]></version_command>
@@ -307,6 +309,17 @@ For tools producing variable numbers of output files, use `discover_datasets`. T
 </collection>
 ```
 
+With a hand-written pattern, anchor the end with `$`, and write the `<` and `>` of the named group as `&lt;` and `&gt;` (it is an XML attribute). An unanchored pattern can match part of a longer filename and split the collection wrongly. Two collections can read the same directory when their patterns pick different extensions:
+
+```xml
+<collection name="results_tsv" type="list" label="${tool.name} on ${on_string}: tables">
+    <discover_datasets pattern="(?P&lt;designation&gt;.+)\.tsv$" format="tabular" directory="output"/>
+</collection>
+<collection name="results_logs" type="list" label="${tool.name} on ${on_string}: logs">
+    <discover_datasets pattern="(?P&lt;designation&gt;.+)\.log$" format="txt" directory="output"/>
+</collection>
+```
+
 ### Help Section
 
 **Standard:** [Help tag][std-help], which describes reStructuredText only at the pinned commit; Markdown as the preferred format for new tools is proposed in [PR #95][std-pr95]. Reviewers already offer it ("you can use markdown if this is any easier") and nobody asks for conversion either way.
@@ -317,10 +330,17 @@ Pick the format by this table, then write in that format's idioms only:
 |---|---|
 | New tool, no help images | Markdown: `<help format="markdown">`. Galaxy supports it from 24.2, so the tool's profile must be >= 24.2 |
 | New tool that ships help images | RST. Galaxy rewrites `.. image::` paths only for RST help (still true in 26.2), so images do not resolve in Markdown help |
-| Editing an existing RST tool | Keep RST. Convert only if you convert the whole help section, and only when the tool has no images. Existing RST tools need not convert |
-| Target repo or brief asks for RST | RST, and note it in the hand-back |
+| Editing an existing RST tool | Keep RST. Convert only if you convert the whole help section, and only when the tool has no images. Existing RST tools need not convert. A tool that has never been released counts as new |
+| Target repo or brief asks for a format | That format, and note it in the hand-back |
 
-Markdown idioms: `##` / `###` headings, single backticks for inline code, fenced blocks for examples, pipe tables, and a blank line before every list (reviewers flag a missing one). RST idioms: `**bold**` pseudo-headers or underlined titles, `-----` rules between sections, double backticks for code, `.. image::` for images. Do not mix them: `-----` rules and double backticks in a `format="markdown"` section are the usual mistake.
+Markdown idioms: `##` / `###` headings, single backticks for inline code, fenced blocks for examples, pipe tables (but see the lint trap below), and a blank line before every list (reviewers flag a missing one). RST idioms: `**bold**` pseudo-headers or underlined titles, `-----` rules between sections, double backticks for code, `.. image::` for images. Do not mix them: `-----` rules and double backticks in a `format="markdown"` section are the usual mistake.
+
+Markdown help has four traps:
+
+- **Start the help at column 0.** Remove the indent that lines it up with the XML; keep indentation inside fenced blocks. Galaxy does not dedent the help text, so Markdown indented four spaces to line up with the XML renders as a code block. The skeleton above indents the body only to show where it goes.
+- **`planemo lint` does not check Markdown.** With galaxy-tool-util 26.0 and older it parses all help as RST whatever `format` says: a clean result ("Help contains valid reStructuredText") proves nothing about the Markdown, and valid Markdown that is not valid RST fails with `HelpInvalidRST`. Pipe tables and nested lists are the known cases. Galaxy 26.1 skips the RST check for other formats. Until the planemo you and CI use carries that, write tables as lists and keep lists flat, and check the rendering with `planemo serve`.
+- **Converting from RST:** `` `text <url>`_ `` becomes `[text](url)`, and `**Title**` pseudo-headers become real headings (left alone they convert silently to bold paragraphs).
+- **Remove every `-----`.** Directly under a paragraph, Markdown reads it as a setext underline and turns that paragraph into a heading.
 
 Either way: wrap in CDATA, say what the tool does, what each input and output is, and keep it concise. Citations go in `<citations>`, not the help text. For images and diagrams see [Including Images][std-images] and `references/tool-help-diagrams.md`.
 
@@ -486,11 +506,11 @@ This causes more bugs than anything else in Galaxy XML. The rules:
 |---------|--------|---------|
 | Text param, dataset path, output path, collection value | `'$param'` | `--input '$input_file'` |
 | `integer` / `float`, boolean `truevalue`/`falsevalue`, fixed-option `select` only | `$param` | `--count $max_count` |
-| Shell environment variable | `\${VAR}` | `--workers \${GALAXY_SLOTS:-1}` |
+| Shell environment variable | `"\${VAR}"` | `--workers "\${GALAXY_SLOTS:-1}"` |
 | Cheetah loop variable | `'$item'` | `'$item'` inside `#for` |
 | Literal dollar in shell | `\$` | `awk '{print \$1}'` |
 
-**Critical:** Galaxy parameters are single-quoted (`'$param'`). Double quotes (`"$param"`) are not a substitute: the shell still expands inside them ([security item 1][sec-1]). An unquoted parameter is acceptable only when its type or finite value set makes it safe, as in row two; a `select` with dynamic options or a `text` param never qualifies. Environment variables use backslash-escaped dollar with braces (`\${VAR:-default}`).
+**Critical:** Galaxy parameters are single-quoted (`'$param'`). Double quotes (`"$param"`) are not a substitute: the shell still expands inside them ([security item 1][sec-1]). An unquoted parameter is acceptable only when its type or finite value set makes it safe, as in row two; a `select` with dynamic options or a `text` param never qualifies. Environment variables use backslash-escaped dollar with braces, in double quotes (`"\${VAR:-default}"`); reviewers ask for the quotes.
 
 ### Nested Contexts and Configfiles
 
@@ -508,6 +528,12 @@ Single quotes protect a value from the outer shell only. A parameter placed insi
 ```
 
 `<configfiles><inputs>` writes every parameter to a JSON file that the script parses, so no user value is ever program text. A templated `<configfile>` is acceptable only when its content is consumed strictly as data (a key/value table, a config format). A `<configfile>` that renders R, Python, or shell with `$param` inside it is generated code and has the same problem as `bash -c`. Never offer `eval`, a script-body param, or a free-text "extra options" param. Secrets never go in a configfile.
+
+What may still appear in a code configfile: the values row two of the table above allows unquoted in the shell (`integer`, `float`, a boolean's `truevalue`/`falsevalue`, a fixed-option `select`), because their value set is closed. They still have to be valid literals in the target language: give a boolean `truevalue="TRUE" falsevalue="FALSE"` for R or `True`/`False` for Python (the defaults `true`/`false` are neither), and put a select's value in string quotes. Text params, dataset paths, identifiers, and anything derived from them come in as data, even when a validator currently makes them harmless: the next edit to the validator should not be able to open a hole. This is stricter than [item 6][sec-6], which says to scan the configfile "according to that target grammar"; say so if a reviewer asks.
+
+JSON through `<configfiles><inputs>` is one way to hand values over. Command-line arguments are the other, and for R usually the cheaper one, since reading JSON needs `jsonlite` and a second requirement means a mulled container (Section 9). Section 6 has the worked example.
+
+The wrapped tool can reopen the hole by itself. If it, or the wrapper, builds a second command line or script out of values found *inside* a dataset (sample names, contig names, VCF INFO fields, read groups), quoting in `<command>` does not reach those values and none of the 10a greps can see them. Find out before wrapping: does the tool write a script, call `system()`, or build file paths from names in its input? If so, validate those names before the tool runs, or run the generated commands as argument vectors and not through a shell. How much validation depends on where the names go: a name that only becomes part of a file path needs no path separator in it; a name that reaches a shell needs a closed, safe alphabet. The upstream source is what tells you which (10a item 1b).
 
 ### Keep Cheetah Side-Effect Free
 
@@ -534,6 +560,23 @@ For select params, use string comparison:
     --advanced-flag
 #end if
 ```
+
+A select is never a boolean, even when its options are `True` and `False`: any non-empty string is truthy, so `#if $report` on a select is always true. Compare the string, with the casing of the `<option value>`:
+
+```
+## BAD: always true, the value is the string "False"
+#if $reporting.report
+## GOOD
+#if str($reporting.report) == "True"
+```
+
+A text param holding a comma-separated list needs its empty entries dropped, because users leave trailing commas (`HK1,HK2,`):
+
+```
+#set $names = [x.strip() for x in str($var_names).split(',') if x.strip()]
+```
+
+The same rules apply in a `<configfile>`.
 
 ### Boolean Parameters
 
@@ -616,8 +659,10 @@ In the command block:
 Seen on Galaxy 25.1 during wrapper work; not in the standards.
 
 - **Generator expressions do not compile in Cheetah.** `#if any(x for $b in $barcodes)` fails. Use an explicit `#for` loop that sets a flag.
-- **`find ... -exec ... \;` gets mangled in a command block.** Use a shell glob or a `for f in dir/*; do ...; done` loop instead (which is also the remote-execution-safe way to enumerate files).
+- **`find ... -exec ... \;` gets mangled in a command block.** Write the terminator as `';'`, or use a shell glob or a `for f in dir/*; do ...; done` loop instead (which is also the remote-execution-safe way to enumerate files).
 - **`re` is not available until you import it.** `#import re` first, or `re.sub(...)` raises `NameError` (seen in a configfile).
+- **A literal `#` starts a Cheetah directive or comment.** In `<command>` and in a `<configfile>`, `##` swallows the rest of the line, and `#` directly followed by a directive name (`#set`, `#if`) is read as one; `# comment` passes through. This bites awk and sed patterns (`/^##/`) and `##` lines in generated R or Python. Escape it as `\#`, or write `[#]` inside a regex.
+- **`sort_by="name"` on `discover_datasets` needs a `name` group in the pattern.** Without one, the job fails as soon as two files match. Use `sort_by="filename"` (seen on 25.1).
 
 ---
 
@@ -639,6 +684,8 @@ Prefer `argument="--flag"` over bare `name="flag"`. This auto-generates the `nam
 ```
 
 `argument=` does not inject the flag. You still write `--min-score $min_score` in the command block.
+
+Two cases the rule does not fit. When upstream has only a short flag, use it (`argument="-q"`) and give an explicit `name=` first, since the derived name would be one letter. When the argument is positional, or is an R or Python function argument and not a CLI flag, there is nothing to put in `argument=`: use `name=` and name the upstream argument in the help text. Do not invent a flag.
 
 **IUC standard attribute order:** `name, argument, type, format, min|truevalue, max|falsevalue, value|checked, optional, label, help`.
 
@@ -694,7 +741,7 @@ Use `min`/`max` attributes on integer/float params. Never use `optional="true"` 
        label="Maximum items" help="Start small to verify results"/>
 ```
 
-Every free-text param gets a hostile-input test (`references/testing.md`).
+Every free-text param gets the hostile-input checks in `references/testing.md`.
 
 ### Boolean Parameters
 
@@ -715,14 +762,18 @@ Put the CLI flag in `truevalue`/`falsevalue`. Don't use booleans as conditionals
 
 If Galaxy has a compressed version of a datatype (`fasta.gz`, `fastqsanger.bz2`), the data param accepts both the compressed and the uncompressed format. If the underlying tool cannot read the compressed form, decompress in `<command>`. Galaxy does not decompress for you. Reviewers ask "are fasta.gz supported?" as a matter of course.
 
+This is not only about sequence formats. To see which compressed forms exist, look for `auto_compressed_types` on the base datatype in Galaxy's `lib/galaxy/config/sample/datatypes_conf.xml.sample` (`gtf` and `tabular` have `gz`; `fasta`, `fastqsanger` and `gff3` have `gz,bz2`; `gff` and `sam` have none). The compressed extensions are generated from that attribute, so searching the file for `extension="gtf.gz"` finds nothing. Accept every form the datatype has, or say in the hand-back which one you left out and why.
+
 ```xml
-<param name="input" type="data" format="fasta,fasta.gz" label="Input sequences"/>
+<param name="input" type="data" format="fasta,fasta.gz,fasta.bz2" label="Input sequences"/>
 <param name="reads" type="data" format="fastqsanger,fastqsanger.gz,fastqsanger.bz2" label="Reads"/>
 ```
 
 ```
 #if $input.is_of_type('fasta.gz')
     gunzip -c '$input' > input.fa &&
+#elif $input.is_of_type('fasta.bz2')
+    bunzip2 -c '$input' > input.fa &&
 #else
     ln -s '$input' input.fa &&
 #end if
@@ -786,6 +837,8 @@ Access paired ends: `$paired_input.forward` / `$paired_input.reverse`
 
 The loop index is the unique suffix here. If the suffix would leak into output the user sees, detect duplicates and `exit 1` with a clear message instead.
 
+Sometimes the identifier is a key that must match something inside the data exactly (a VCF sample column, a read group), so it cannot be rewritten. Then do not use it as a filename at all: pass it as an argument, converted with `str()`, in single quotes with any `'` escaped (`'${str($input.element_identifier).replace("'", "'\\''")}'`), and fail on duplicates.
+
 ### Reference Data and Data Tables
 
 **Standard:** [integration_checklist][std-checklist] ("built-in data", "tool-data" bullets); [pulsar items 3 and 4][pulsar-3].
@@ -828,7 +881,7 @@ Reviewer habits and style points. The first, third, and fifth are skill-side obs
 - **Unit notation in labels:** Use SI-style lowercase: "kb" not "KB", "Mb" not "MB". The option values can use uppercase (e.g., `value="1MB"`) but display text should read "1 Mb".
 - **Help text:** Keep it actionable and short. "Start small to verify results" is good.
 - **Citations:** Prefer `type="doi"` over `type="bibtex"` when a DOI is available. Search the upstream repo/paper for the correct DOI.
-- **4-space indentation** throughout XML and Cheetah code. Run `planemo format` before submitting to ensure consistent indentation matching Galaxy Language Server style.
+- **4-space indentation** throughout XML and Cheetah code. Run `planemo format` on new files before submitting (for a reviewed wrapper see Section 9) to ensure consistent indentation matching Galaxy Language Server style.
 - **One line per element:** keep all attributes of an element on one line; only `label` and `help` may wrap ([Coding Style][std-style]).
 - **New datatypes** go to the Galaxy repository, not the tool repo ([tool_xml][std-tool-xml], "Datatypes").
 
@@ -838,12 +891,52 @@ Reviewer habits and style points. The first, third, and fifth are skill-side obs
 
 **Standard:** [Coding Style][std-style] (Python 3, PEP 8, smarkets import order); [integration_checklist][std-checklist] (flake8 in IUC CI).
 
-Add a wrapper script only when:
+Wrappers come in three shapes, and the shape decides whether there is a script at all:
+
+| Upstream is | Shape | Examples |
+|---|---|---|
+| A command-line program | Call it directly in `<command>`; params map to flags with `argument=`. No script | samtools, bedtools |
+| An R package with no CLI | An R script the wrapper ships or generates, run with `Rscript` | DESeq2, dupRadar |
+| A Python library with no CLI | A Python script the wrapper ships or generates, run with `python` | scanpy, squidpy |
+
+For a CLI program, add a wrapper script only when:
 
 - The CLI output format doesn't match what Galaxy expects (needs conversion)
 - You need multi-step pipelines that are too complex for shell in the command block
 - The tool wraps an API rather than a CLI binary
 - You need per-item error handling with partial results
+
+### Tools Without a CLI (R and Python Libraries)
+
+The script is code, so user values reach it as data (Section 4): as arguments, or as JSON from `<configfiles><inputs>`. The script itself is either a file shipped next to the wrapper and declared in `<required_files>`, or an inline `<configfile>` when it is short. Arguments, with an inline R script:
+
+```xml
+<command detect_errors="aggressive"><![CDATA[
+    ln -s '$input' input.bam &&
+    Rscript '$script' input.bam '$sample_label' $stranded "\${GALAXY_SLOTS:-1}" '$output'
+]]></command>
+<configfiles>
+    <configfile name="script"><![CDATA[
+args <- commandArgs(trailingOnly = TRUE)
+bam <- args[1]
+label <- args[2]
+stranded <- as.integer(args[3])
+threads <- as.integer(args[4])
+out <- args[5]
+suppressPackageStartupMessages(library(mypackage))
+res <- mypackage::analyze(bam, stranded = stranded, threads = threads)
+write.table(res, out, sep = "\t", quote = FALSE, row.names = FALSE)
+    ]]></configfile>
+</configfiles>
+```
+
+No `$param` appears in the script, so nothing a user types is parsed as R. The Python form is the same with `sys.argv` or `argparse`. Points that apply to both:
+
+- A literal `$` in the script (R's `df$column`) is written `\$`, and `##`, or a `#` directly followed by a directive name such as `#set`, is escaped with `\#` (Section 4, Field Gotchas). Once a script needs many of those, or has no Cheetah left in it, ship it as a file instead.
+- Threads come from `GALAXY_SLOTS`, passed as an argument as above or read in the script (`Sys.getenv("GALAXY_SLOTS", "1")`, `os.environ.get("GALAXY_SLOTS", "1")`).
+- Progress and logging go to stderr. `suppressPackageStartupMessages()` keeps R's load messages out of it.
+- `detect_errors` follows the same rule as for any tool (Section 2). Libraries that print warnings are not a reason for `exit_code`; a library that prints `error:` on a successful run is.
+- When the script changes the data beyond what the user asked for (converting a sparse matrix, replacing `.X`, dropping rows), comment why at that line. Reviewers ask.
 
 ### When You Do Need a Script
 
@@ -927,8 +1020,18 @@ Available environment variables:
 In the command block:
 
 ```
---threads \${GALAXY_SLOTS:-1}
+--threads "\${GALAXY_SLOTS:-1}"
 ```
+
+Libraries that start their own thread pools ignore a `--threads` flag, or have none. Cap them through their environment variables, or a job on a shared node takes every core:
+
+```
+export OMP_NUM_THREADS="\${GALAXY_SLOTS:-1}" &&
+export NUMBA_NUM_THREADS="\${GALAXY_SLOTS:-1}" &&
+mytool ...
+```
+
+`OMP_NUM_THREADS` covers OpenMP code (much of numpy, scipy and R's BLAS); `NUMBA_NUM_THREADS` covers numba (scanpy, squidpy and friends); `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` exist for those backends. Set only the ones the tool's stack uses.
 
 ### Memory
 
@@ -951,7 +1054,7 @@ Scratch space is the job working directory. No `/tmp` and no other absolute path
 
 **Standard:** [Tests][std-tests]; [integration_checklist][std-checklist] "Testing Your Tool".
 
-See `references/testing.md` for the full assertion reference, collection testing, compressed output testing, repeat element tests, tool-data test setup, the hostile-input test, gotchas, and failure analysis. Also see the [Galaxy Tool XSD Schema](https://docs.galaxyproject.org/en/latest/dev/schema.html) for the complete assertion specification.
+See `references/testing.md` for the full assertion reference, collection testing, compressed output testing, repeat element tests, tool-data test setup, the hostile-input checks, gotchas, and failure analysis. Also see the [Galaxy Tool XSD Schema](https://docs.galaxyproject.org/en/latest/dev/schema.html) for the complete assertion specification.
 
 ### Test XML Structure
 
@@ -981,9 +1084,11 @@ See `references/testing.md` for the full assertion reference, collection testing
 - Point expected files to unique golden files — no duplicate outputs for different logic paths
 - Always include `expect_num_outputs` — count only outputs actually produced (filters that evaluate to False don't produce output)
 - **Test data: aim for under 1 MB in total.** Shrink or downsample inputs first. For large *outputs*, assert on content (`<has_text>`, `<has_size>`, `compare="contains"`) instead of committing a golden file. For a large *input* that cannot be made smaller, deposit it in the [Galaxy Tool Developers Zenodo community](https://zenodo.org/communities/galaxy_tool_dev_sig) and reference it with `location=` (see below). Assertions do not solve large inputs.
+- **Always include a defaults-only test**: required inputs and nothing else, taking the default branch of every conditional. When the default branch reads a data table, use the test data table (`references/testing.md`) and do not switch the conditional to get around it. It catches template errors (a bad conditional, a missing default, a filter that never fires) that every other test steps around by setting the parameter
 - Include tests for output filters to verify filtering actually occurs
-- Include tests for error conditions with expected failure
-- Include a hostile-input test for every free-text parameter (`references/testing.md`)
+- Include a test for an error condition with `expect_failure="true"` when the wrapper has one of its own: a check it adds, or an input the tool rejects with a clear message. It has to fail at runtime. A parameter value that a validator rejects cannot be a test, because `planemo lint` fails it: an error on profile 24.2 or later, a warning below, and the default `--fail_level warn` fails on both (`references/testing.md`). If the tool has no failure worth pinning, record N/A with the reason; do not contrive one
+- For every free-text parameter, test the awkward values it accepts (`references/testing.md`, Hostile-Input Test)
+- For a wide matrix whose columns depend on the upstream model or database, assert the column count and a few known headers (`has_n_columns`, `has_text_matching`) instead of comparing the whole file
 
 Large input from Zenodo:
 
@@ -1021,7 +1126,7 @@ Test conditionals and sections with explicit nesting (not pipe syntax):
 
 ### Running Tests
 
-Run `planemo test --biocontainers` to execute tests. See **Reference: Useful Planemo Commands** at the end of this document for the full command set. If the run fails before any test starts, check the Gotchas in `references/testing.md` (Galaxy Python version, missing mulled image).
+Run `planemo test --biocontainers` to execute tests. If the session cannot reach Docker or cannot start Galaxy (no container socket, no permission to bind a port), do not work around it: report the error, record the tests as not run, never as passed, and do not fall back to a different kind of run without saying so. See **Reference: Useful Planemo Commands** at the end of this document for the full command set. If the run fails before any test starts, check the Gotchas in `references/testing.md` (Galaxy Python version, missing mulled image).
 
 ### Generating Expected Output Files
 
@@ -1070,15 +1175,16 @@ auto_tool_repositories:
   description_template: "Wrapper for MyTool application: {{ tool_name }}."
 suite:
   name: "suite_mytool"
-  description: "A suite of Galaxy tools for MyTool."
+  description: "Short one-line description"
   type: repository_suite_definition
 ```
 
 **Key points:**
 - `auto_tool_repositories` creates one Tool Shed repo per tool XML automatically
 - `suite` groups all tools under a single installable suite. Let planemo generate it; do not hand-write a suite for one set of related tools
-- `owner: iuc` for tools-iuc submissions
-- `remote_repository_url` should point to the tools-iuc path (the final location)
+- The suite `description` repeats the top-level description. Generic text ("A suite of Galaxy tools for MyTool.") gets flagged
+- `owner: iuc` for tools-iuc submissions. Another repository has its own owner; copy it from a sibling tool there
+- `remote_repository_url` should point to the tool's path in the target repository (the final location)
 - Repository names cannot contain periods; a tool repo is `$name`, a suite `suite_$name`
 - `include` / `exclude` for shared or oversized files: see [shed_yml][std-shed]
 - Check the file with `planemo shed_lint tools/mytool/`. Do not run any `shed_create` / `shed_upload` / `shed_update` command: IUC CI publishes after merge
@@ -1088,49 +1194,54 @@ suite:
 **Standard:** [package_xml][std-package].
 
 - Requirements must be available in **conda-forge** or **bioconda** channels, referenced by name **and version**. Use the latest stable versions.
+- List the main package and what the wrapper's own command calls beyond it (`gawk`, `samtools` for a sort step). Do not list a library just because the main package imports it. A program the wrapper calls that only arrives as a dependency of the main package (a tool that brings its own `bwa` or `python`) is a judgment call: listing it survives upstream dropping the dependency but turns a single-package container into a mulled one. Follow sibling tools and say in the PR which you chose. In a suite, reviewers prefer one shared set of requirements, so every tool runs in the same environment, even when one tool does not use every package. A requirement that nothing in the suite calls gets "is this used?". Pin a transitive dependency only to work around a real conflict, with an XML comment saying which. The integration checklist says "the tool and its dependencies"; this skill reads that as what the wrapper calls directly.
 - A tool with one requirement gets its BioContainer automatically. A tool with **two or more** requirements needs a mulled container for that exact combination, which is only built once the combination is registered ([Multi-requirement containers][std-package-mulled]). For repositories tracked by planemo-monitor (tools-iuc is the usual case) that registration happens automatically once the tool is merged, so `planemo test --biocontainers` can fail locally on a new combination with no image on quay. Build it locally (see Gotchas in `references/testing.md`) and say so in the hand-back.
 
 ### Versioning and Lint Hygiene
 
 - The version-bump rule is in Section 11.
 - If a `.lint_skip` file exists in the tool directory, try to fix the underlying issues and remove the skip entries rather than adding to them.
-- Run `planemo lint` after every change. It catches element ordering, missing attributes, and parameter mismatches.
+- Run `planemo lint` after every change. It catches element ordering, missing attributes, and parameter mismatches. Lint looks up the bio.tools xref online, so without network access it warns "No entry ... in bio.tools" for an entry that exists, and at the default fail level that warning makes the run print "Failed linting" and exit 1. Record that as pass with the warning explained. `planemo shed_lint` needs the Tool Shed and dies with a connection error without it: record not verified.
+- `planemo format` is for new files. On a wrapper that has already been reviewed it can reflow the whole file, and it joins wrapped `label`/`help` attributes that the Coding Style allows to wrap. There, read `planemo format --dry-run` and apply only what you want.
 
 ---
 
 ## 10. Pre-PR Passes
 
-Four passes, run in order by Step 8 of Section 12. For every item record **pass**, **fail**, or **N/A** with a one-line reason. "N/A" needs the reason as much as "fail" does (for example "N/A -- tool makes no network calls"). The rationale for each item lives in the standards; the tables below give only the check.
+Four passes, run in order by Step 8 of Section 12. For every item record **pass**, **fail**, **N/A**, or **not verified** with a one-line reason. "N/A" needs the reason as much as "fail" does (for example "N/A -- tool makes no network calls"). "Not verified" is for a check that applies but could not be run in this session (no container, no browser); give the error or the reason, and never record it as pass or N/A. The rationale for each item lives in the standards; the tables below give only the check.
 
 ### 10a. Security Pass
 
 **Standard:** [Tool Security Checklist][std-security]. The readiness checklist asks you to trace every user-controlled value through Cheetah, the generated command, helper scripts, files, network clients, and rendered outputs. These ten checks are that trace.
 
-The greps produce candidates to read, not verdicts. They cover `macros.xml` too, since tokens expand into the command. Run them in bash (`$F` is left unquoted on purpose so the glob expands):
+The greps produce candidates to read, not verdicts. They cover `macros.xml` too, since tokens expand into the command. `F` is an array so the block behaves the same in bash and zsh; an empty result with "No such file or directory" (bash) or "no matches found" (zsh) on stderr means the path is wrong, not that the check is clean:
 
 ```bash
-F="tools/mytool/*.xml"; D="tools/mytool"
-grep -nE '\$\{?[A-Za-z_]' $F                                               # g1a: every $ reference
-grep -nE 'bash -c|sh -c|awk|sed|perl -e|Rscript -e|python -c' $F           # g1b: nested interpreters
-grep -nE 'type="text"|<sanitizer' $F                                       # g2: free text, sanitizers
-grep -nE 'element_identifier|\.name\b|display_name' $F                     # g3: identifiers
-grep -nE '#(set|echo)|\.(split|strip|replace|join|format)\(|sanitize=' $F  # g4: expressions on params
-grep -nE '#import (os|subprocess|pathlib|glob|shutil)|open\(|os\.|__app__' $F   # g5: template side effects
-grep -nE '<configfile|eval|exec\(' $F                                      # g6: generated code
-grep -rniE 'pickle|joblib|rds|rdata|torch|tar |unzip' $D --include='*.xml' --include='*.py' --include='*.R'   # g7
-grep -rniE 'api[_-]?key|token|secret|bearer|authorization|password' $D     # g8: secrets, fixtures included
-grep -rnE  'curl|wget|https?://|requests\.|urllib' $D --include='*.xml' --include='*.py' --include='*.R'      # g9
-grep -nE  'format="(html|svg)"' $F                                         # g10: active content
+D="tools/mytool"; F=("$D"/*.xml)
+grep -nE '\$\{?[A-Za-z_]' "${F[@]}"                                               # g1a: every $ reference
+grep -nE '\b(bash|sh) -c|\b(awk|sed)\b|perl -e|Rscript -e|python -c' "${F[@]}"    # g1b: nested interpreters
+grep -nE 'type="text"|<sanitizer' "${F[@]}"                                       # g2: free text, sanitizers
+grep -nE 'element_identifier|\.name\b|display_name' "${F[@]}"                     # g3: identifiers
+grep -nE '#(set|echo)|\.(split|strip|replace|join|format)\(|sanitize=' "${F[@]}"  # g4: expressions on params
+grep -nE '#import (os|subprocess|pathlib|glob|shutil)|open\(|\bos\.|__app__' "${F[@]}"   # g5: template side effects
+grep -nE '<configfile|\beval\b|exec\(' "${F[@]}"                                  # g6: generated code
+grep -rniE 'pickle|joblib|readrds|\brds\b|\brdata\b|torch|\btar |unzip' "$D" --include='*.xml' --include='*.py' --include='*.R'   # g7
+grep -rniE 'api[_-]?key|(^|[^</@])token|secret|bearer|authorization|password' "$D"   # g8: secrets, fixtures included
+grep -rnE  'curl|wget|https?://|requests\.|urllib' "$D" --include='*.xml' --include='*.py' --include='*.R'      # g9
+grep -nE  'format="(html|svg)"' "${F[@]}"                                         # g10: active content
 ```
+
+Expect harmless hits: g1a lists output labels (`${on_string}`) and awk variables such as `\$NF`, g3 lists `${tool.name}` in labels, g7 lists `gunzip` (through `unzip`), and g9 lists help links.
 
 | # | Item | Check |
 |---|---|---|
-| 1 | [Single-quote dynamic values in shell commands][sec-1] | g1a: each reference in `<command>` and tokens is inside single quotes, or is an `integer`/`float`, a boolean `truevalue`, or a fixed-option `select`. No `"$param"`. g1b: no parameter is interpolated into the inner program. |
-| 2 | [Constrain free text to the smallest useful language][sec-2] | g2: for each text param, could it be a typed param or a `select`? If not, it has a regex validator anchored at both ends, or a written reason. No sanitizer admits `'`. A hostile-input test exists. |
+| 1 | [Single-quote dynamic values in shell commands][sec-1] | g1a: each reference in `<command>` and tokens is inside single quotes, or is an `integer`/`float`, a boolean `truevalue`, or a fixed-option `select`. No `"$param"`, and that includes `#set` variables derived from a param. Shell variables in double quotes (`"\$f"`, `"\${GALAXY_SLOTS:-1}"`) are correct. g1b: no parameter is interpolated into the inner program; a fixed inline program with fixed arguments passes. |
+| 1b | Values from inside datasets (skill-side; extends [item 1][sec-1]) | Does the tool or the wrapper build a second command line, a script, or a file path from values inside a dataset (Section 4)? Settle it from the upstream source, not from `--help`: search it for `os.system`, `subprocess`, `shell=True`, `popen`, `system(` and for file names built from header or record fields. No: pass. Paths only: the wrapper rejects names with a path separator before the tool runs, with a test. A shell: the wrapper restricts the names to a safe alphabet, or the feature is not offered. Source not read: not verified. |
+| 2 | [Constrain free text to the smallest useful language][sec-2] | g2: for each text param, could it be a typed param or a `select`? If not, it has a regex validator anchored at both ends, or a written reason. No sanitizer admits `'`. The accepted awkward values are tested (`references/testing.md`); a rejected value is shown by the lint error or a manual run, not by a `<test>`. |
 | 3 | [Treat identifiers and generated filenames as untrusted][sec-3] | g3: each use is not a filename, or was replaced by a fixed filename, or goes through `#import re` + `str()` + `re.sub` + collision handling. Every one is single-quoted at the shell. |
 | 4 | [Preserve sanitization through Cheetah expressions][sec-4] | g4: every method call on a text param is on `str($param)`, and each result that reaches the shell is single-quoted. No `sanitize="false"` without a validator and a reason. |
 | 5 | [Keep Cheetah templating side-effect free][sec-5] | g5 returns nothing in `<command>`, tokens, or `<configfile>` Cheetah directives, or only hits you can explain (plain script text in a configfile runs in the job, not in the template). |
-| 6 | [Keep user values as data, never generated code][sec-6] | g6: for each `<configfile>`, is its content code (R, Python, shell, awk)? If so, no `$param` appears in it; values come from `<configfiles><inputs>` JSON or arguments. No `eval`/`exec`, no script-body param, no free-text "extra options" param. |
+| 6 | [Keep user values as data, never generated code][sec-6] | g6: for each `<configfile>`, is its content code (R, Python, shell, awk)? If so, the only `$param`s in it are `integer`, `float`, boolean, or fixed-option `select` values; everything else comes from arguments or `<configfiles><inputs>` JSON (Section 4). No `eval`/`exec`, no script-body param, no free-text "extra options" param. |
 | 7 | [Treat uploaded serialized objects and archives as active input][sec-7] | N/A unless g7 or the input formats show pickle, RData/RDS, a model checkpoint, or an archive the tool extracts. Otherwise: data-only loading mode or a documented trust decision; extraction rejects absolute and `..` paths. |
 | 8 | [Keep credentials out of commands, arguments, and logs][sec-8] | N/A unless the tool uses a secret. Otherwise: secrets come only from `<credentials>` into the environment; none in XML, command line, `<configfile>`, `echo`, logs, or outputs. g8 shows placeholders only. |
 | 9 | [Verify downloads and preserve transport security][sec-9] | N/A unless g9 shows the tool or its script fetching anything. Otherwise: HTTPS with verification on, versioned URLs, checksum verified, job fails on mismatch, no unconstrained user URL. |
@@ -1142,24 +1253,24 @@ grep -nE  'format="(html|svg)"' $F                                         # g10
 
 | # | Item | Check |
 |---|---|---|
-| 1 | Licensing | The wrapped software's license is OSI-approved and you can name it. No dependency, model, or reference dataset the tool needs carries a use restriction, or the restriction is handled per [licensing][std-licensing]. The PR template's "license permits unrestricted use" box can be ticked honestly. |
+| 1 | Licensing | The wrapped software's license is OSI-approved and you can name it, from the license file itself (Step 0 says where to look). No dependency, model, or reference dataset the tool needs carries a use restriction, or the restriction is handled per [licensing][std-licensing]. The PR template's "license permits unrestricted use" box can be ticked honestly. |
 | 2 | ID, name, version, description | Follow [Tool ids][std-ids], [Tool versions][std-versions]; `<description>` present. Version is built from tokens. |
 | 3 | Requirements | Every `<requirement>` has a `version`. Two or more requirements: mulled container noted (Section 9). |
 | 4 | Version command | `<version_command>` runs the tool's real version command. |
-| 5 | Security review | Pass 10a is complete. |
+| 5 | Security review | Pass 10a is complete: every item has a result, and any "not verified" is named in the hand-back. |
 | 6 | Outputs | Optional outputs use `<filter>`; each filter has a test where it is true and one where it is false. |
-| 7 | Tests | At least one test per code path, each with `expect_num_outputs`; at least one expected-failure test. |
-| 8 | Help | `<help>` exists, is in CDATA, and is valid in the one format it declares (Section 2). The checklist at the pinned commit says reStructuredText; Markdown rests on [PR #95][std-pr95] and review practice. |
+| 7 | Tests | At least one test per code path, each with `expect_num_outputs` (expected-failure tests excepted), and one that sets only the required inputs. An expected-failure test for each failure the wrapper itself detects, or N/A with the reason (the standards do not require one; this is skill-side). |
+| 8 | Help | `<help>` exists, is in CDATA, and is valid in the one format it declares (Section 2). For Markdown, lint is not that check: confirm it starts at column 0 and has no RST leftovers, and look at it in `planemo serve` or record the rendering as not verified. The checklist at the pinned commit says reStructuredText; Markdown rests on [PR #95][std-pr95] and review practice. |
 | 9 | Citation | `<citations>` present, DOI preferred. |
-| 10 | Built-in data | N/A unless a data table is used. Otherwise all four files from Section 5 exist: `ls tool-data/*.loc.sample tool_data_table_conf.xml.sample tool_data_table_conf.xml.test test-data/*.loc`. |
-| 11 | Order and indentation | Elements and param attributes in the [Coding Style][std-style] order; 4 spaces. `planemo format` then `planemo lint` clean. |
+| 10 | Built-in data | N/A unless a data table is used. Otherwise all four files from Section 5 exist; from the tool directory: `ls tool-data/*.loc.sample tool_data_table_conf.xml.sample tool_data_table_conf.xml.test test-data/*.loc`. |
+| 11 | Order and indentation | Elements and param attributes in the [Coding Style][std-style] order; 4 spaces. `planemo lint` clean; `planemo format --dry-run` proposes nothing beyond serialisation changes such as re-joined `label`/`help` attributes (Section 9). |
 | 12 | Test data size | `du -sh tools/mytool/test-data`. Over 1 MB: shrunk, replaced by assertions, or moved to Zenodo with `location=`. State the size. |
 | 13 | `planemo lint` | Passes with no errors; warnings are fixed or explained. |
-| 14 | `planemo test` | All tests pass. Quote the summary line. |
-| 15 | `planemo serve` | Tool form looks right when served locally. If you cannot open a browser, record N/A with that reason and ask the human to check. |
+| 14 | `planemo test` | All tests pass. Quote the summary line. If Galaxy or the container could not start, record not verified with the error. |
+| 15 | `planemo serve` | Tool form looks right when served locally. If you cannot open a browser, record not verified with that reason and ask the human to check. |
 | 16 | `.shed.yml` | Present; `planemo shed_lint` passes. |
 | 17 | Python lint | N/A with no Python. Otherwise `flake8` passes on every shipped `.py`. |
-| 18 | Tracking issue | A tools-iuc issue for the tool exists or was checked for (`references/tool-placement.md`). |
+| 18 | Tracking issue | A tools-iuc issue for the tool exists or was checked for (`references/tool-placement.md`). N/A when the target repository does not use tracking issues. |
 
 ### 10c. Remote Execution Pass (Pulsar)
 
@@ -1175,9 +1286,10 @@ grep -nE  'format="(html|svg)"' $F                                         # g10
 | 6 | [Keep discovered outputs inside the job working directory][pulsar-6] | r5: every `from_work_dir` and `discover_datasets directory=` is a relative path under the working directory. |
 
 ```bash
-grep -n   '__tool_directory__' $F                                              # r1
-grep -rnE '/(tmp|data|mnt|opt|usr|home|scratch)/' $D --include='*.xml' --include='*.py' --include='*.R'   # r4
-grep -nE  'ln -s|from_work_dir|discover_datasets' $F                           # r5
+D="tools/mytool"; F=("$D"/*.xml)    # repeated: a new shell does not keep them, and with F unset grep reads stdin and prints nothing
+grep -n   '__tool_directory__' "${F[@]}"                                       # r1
+grep -rnE '/(tmp|data|mnt|opt|usr|home|scratch)/' "$D" --include='*.xml' --include='*.py' --include='*.R'   # r4
+grep -nE  'ln -s|from_work_dir|discover_datasets' "${F[@]}"                    # r5
 ```
 
 ### 10d. Review Flags
@@ -1199,7 +1311,7 @@ Reviewer habits and wrapper conventions not already covered by 10a-10c. Rows tha
 | Test data outside `test-data/` | "Move to test-data directory" | Move files, update paths |
 | `optional="true"` with a default | "Just use the default, remove optional" | Remove `optional`, set `value` |
 | stdout used for logging | "Use stderr for logging" | `logging.StreamHandler(sys.stderr)` |
-| Missing `argument=` on params | "Use argument= instead of bare name=" | `<param argument="--flag" .../>` |
+| Missing `argument=` on params | "Use argument= instead of bare name=" | `<param argument="--flag" .../>`. Does not apply to positional arguments or to R/Python function arguments (Section 5) |
 | Bare `name=` duplicating `argument=` | "argument= auto-generates the name" | Remove redundant `name=`, keep `argument=` (flag still needed in command) |
 | Param not used in command | "Orphaned parameter" | Remove param or wire it into command |
 | Boolean used as conditional | "Use select + conditional" | Replace boolean with select param when other params depend on choice |
@@ -1207,6 +1319,17 @@ Reviewer habits and wrapper conventions not already covered by 10a-10c. Rows tha
 | Missing compressed format support | "Are fasta.gz supported?" | `format="fasta,fasta.gz"`, decompress in `<command>` if the tool cannot |
 | Missing bio.tools xref | "Add bio.tools cross-reference" | Add `<xrefs><xref type="bio.tools">id</xref></xrefs>` |
 | Unpinned `python` requirement | "we pin python" | Add `version=` |
+| Different requirements per tool in a suite | "My preference is always a common set of requirements for all tools" | One shared `requirements` macro, so there is one environment and one container |
+| Unquoted shell variable | "Add double quotes for bash vars" | `--threads "\${GALAXY_SLOTS:-1}"` |
+| `#if $select_param` on a True/False select | "Always true" | `#if str($param) == "True"`, with the option's casing (Section 4) |
+| Comma-split list without dropping empty entries | "A trailing comma gives an empty string" | `[x.strip() for x in str($param).split(',') if x.strip()]` |
+| Unanchored `discover_datasets` pattern | "Anchor the pattern" | End the regex with `$` (Section 2) |
+| Missing defaults-only test | "Add a test with default parameters" | One test per tool with required inputs only, on the default branch of each conditional |
+| Optional seed or similar with no default | "Set an explicit default" | A fixed seed such as `value="42"`, drop `optional`. Check what 0 means upstream: some tools (HMMER) treat it as "pick one at random" |
+| Apostrophe in a text param's default | "The sanitizer rewrites quotes" | Quote-free values: the default sanitizer turns `'` into `__sq__` (`Cohens_d`, not `Cohen's d`) |
+| Requirement that nothing in the suite calls, or an unexplained pin | "Is this dependency used?" | Remove it; pin a transitive dependency only with a comment naming the conflict |
+| Help names another Galaxy tool loosely | "That's not what the tool is called" | Use the other tool's exact name as shown in the tool panel |
+| Data changed in the script with no explanation | "Why is this converted here?" | Comment the reason at that line; convert only when needed (Section 6) |
 
 #### Commonly Requested Improvements
 
@@ -1322,7 +1445,7 @@ Also check `bioconda` and `conda-forge` for an existing recipe — if none exist
 
 **Licensing.** **Standard:** [licensing][std-licensing], items [1][lic-osi] to [3][lic-redistribution]. The IUC accepts wrappers for software under an OSI-approved license, and the PR template asks you to confirm the license permits unrestricted use. Before writing anything:
 
-- Find the license of the wrapped software and confirm it is OSI-approved. If it is not, stop and ask the human; wrapper engineering does not fix this.
+- Find the license of the wrapped software and confirm it is OSI-approved. If it is not, stop and ask the human; wrapper engineering does not fix this. Read the license text itself: the `LICENSE` file in the upstream repository, `info/licenses/` inside the conda package, or the license file shipped in the Bioconda recipe directory. For dependencies, the recipe labels of the direct run dependencies are enough unless one looks unusual; then read that one too. The one-word label in the Bioconda recipe or on GitHub is not enough, because a standard license under a "for academic and non-profit use only" preamble still gets a standard-looking label.
 - Check the other layers: dependencies, and any reference data or models the tool needs. An open-source tool can depend on a restricted model or database.
 - Confirm redistribution is permitted (normally: a Bioconda package exists or can exist).
 - The `license` attribute on `<tool>` describes the wrapper, not the wrapped software. Do not use it to record the upstream license.
@@ -1398,7 +1521,7 @@ planemo shed_lint tools/mytool/
 ### Step 7: Format, Lint, and Test
 
 ```bash
-planemo format tools/mytool/
+planemo format tools/mytool/   # new files; on a reviewed wrapper use --dry-run (Section 9)
 planemo lint tools/mytool/
 planemo test --biocontainers tools/mytool/
 flake8 tools/mytool/          # only if the wrapper ships Python
@@ -1407,14 +1530,14 @@ planemo serve tools/mytool/   # manual check of the tool form
 
 ### Step 8: Run the Pre-PR Passes
 
-Run **10a, 10b, 10c, 10d** in that order. For each item in 10a-10c record pass, fail, or N/A with a one-line reason; for 10d list only the rows that applied and what you did. Fix every fail and re-run the affected item. Do not hand back with an unexplained fail.
+Run **10a, 10b, 10c, 10d** in that order. For each item in 10a-10c record pass, fail, N/A, or not verified with a one-line reason; for 10d list only the rows that applied and what you did. Fix every fail and re-run the affected item. Do not hand back with an unexplained fail.
 
 Put the result in the hand-back or the PR description, so a reviewer (human or agent) can audit it:
 
 ```
 10a Security
  1 pass -- 6 params, all single-quoted; no nested interpreters
- 2 pass -- 1 text param (sample label), validator ^[A-Za-z0-9_.-]+$, hostile-input test added
+ 2 pass -- 1 text param (sample label), validator ^[A-Za-z0-9_.-]+$; lint rejects `a;b` and `x$(id)`; accepted-value test added
  3 pass -- element_identifier used for link names via re.sub + index suffix
  ...
  9 N/A  -- no network access
@@ -1423,6 +1546,7 @@ Put the result in the hand-back or the PR description, so a reviewer (human or a
 10d Review flags         rows that applied, and what was done
 Deviations (target repo convention): RST help and inline tokens, matching tools/<sibling>
 Not verified: planemo serve (no browser in this session)
+Not created: bio.tools entry (none exists; xref left out)
 ```
 
 ---
@@ -1482,7 +1606,7 @@ planemo test tools/mytool/
 planemo serve tools/mytool/
 ```
 
-<!-- IUC standards link targets. Deep-link anchors are unverified; see the note under Authority. -->
+<!-- IUC standards link targets. -->
 [std]: https://galaxy-iuc-standards.readthedocs.io/en/latest/
 [std-pr95]: https://github.com/galaxy-iuc/standards/pull/95
 [std-tool-xml]: https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/tool_xml.html

@@ -277,7 +277,7 @@ Or use `lines_diff` for mostly-stable output:
 
 A tool that reads a data table (`<options from_data_table="mytool_indexes">`) cannot be tested until the table exists in the test Galaxy. Two files do that:
 
-`tool_data_table_conf.xml.test`, next to the tool XML. `${__HERE__}` is the tool directory:
+`tool_data_table_conf.xml.test`, next to the tool XML. `${__HERE__}` is the directory of the file it appears in: the tool directory here, and `test-data/` inside the `.loc` file below:
 
 ```xml
 <tables>
@@ -312,20 +312,18 @@ The test selects the row by its `value` column:
 
 **Standard:** [security item 2](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/security.html#security-free-text): test punctuation, whitespace, quotes, newlines, empty values, and boundary lengths, not only the default.
 
-Every free-text parameter gets two kinds of test.
+Every free-text parameter gets two kinds of check. Only the second is a `<test>`.
 
-**Rejected.** A value outside the validator's language never reaches the shell. The test expects failure and has no output checks:
+**Rejected: check it, but not with a `<test>`.** A value outside the validator's language should never reach the shell. This cannot be written as a test: `planemo lint` validates the parameters of every test against the tool's validators and reports a failure as an error (`TestsCaseValidation`, "failed to validate test parameters against inputs"), whether or not the test says `expect_failure="true"`. That is the behaviour for profile 24.2 or later, which Markdown help requires. Below 24.2 it is a warning, which still fails `planemo lint` at its default `--fail_level warn`. So:
 
-```xml
-<test expect_failure="true">
-    <param name="input" value="input.tsv"/>
-    <param name="sample_name" value="ok; touch pwned"/>
-</test>
-```
+1. Add the test temporarily with a hostile value and run `planemo lint`. The `TestsCaseValidation` error, quoting your validator's message, is the evidence that the validator rejects the value. If lint stays clean, the validator accepted it: fix the validator (usually a missing `$` anchor).
+2. Remove the test, and record the values you tried in the hand-back.
 
-Useful hostile values: `a;b`, `$(id)`, `` `id` ``, `a'b`, `a"b`, `a b`, `../x`, `-x` (looks like a flag), and a trailing-junk value such as `good;rm` that only an end-anchored validator rejects. If this test *passes without* `expect_failure`, the validator is not anchored.
+Do not keep the test and silence the linter with `.lint_skip`.
 
-**Accepted and intact.** The awkward values the validator does allow (spaces, dots, the longest reasonable value, the empty string for an optional param) arrive as one argument, unchanged:
+Useful hostile values: `a;b`, `$(id)`, `` `id` ``, `a'b`, `a"b`, `a b`, `../x`, `-x` (looks like a flag), and a trailing-junk value such as `good;rm` that only an end-anchored validator rejects.
+
+**Accepted and intact: a real test.** The awkward values the validator does allow (spaces, dots, the longest reasonable value, the empty string for an optional param) arrive as one argument, unchanged:
 
 ```xml
 <test expect_num_outputs="1">
@@ -342,7 +340,20 @@ Useful hostile values: `a;b`, `$(id)`, `` `id` ``, `a'b`, `a"b`, `a b`, `../x`, 
 </test>
 ```
 
-> **Verify:** a validator rejection happens before a job exists. Current Galaxy counts that as the expected failure for `expect_failure="true"` (checked in the test interactor of a 26.1 development checkout); this has not been checked on older Galaxy or planemo versions. If the rejected-value test errors instead of passing, say so in the hand-back rather than deleting the test.
+`assert_command` only sees values that reach the command line. When the value goes to a script through a JSON file or a `<configfile>`, assert on the output or on stderr instead.
+
+An expected-failure test is still right for failures that happen at runtime: a check the wrapper adds (a header check, a duplicate-name check), or input content the tool rejects with a clear message. Assert on the message:
+
+```xml
+<test expect_failure="true">
+    <param name="input" value="two_samples.bam"/>
+    <assert_stderr>
+        <has_text text="read groups for 2 samples"/>
+    </assert_stderr>
+</test>
+```
+
+If Galaxy rejects the job at submission (an invalid parameter, a missing test file), it counts that as the expected failure and skips `assert_stderr`. Check in `tool_test_output.json` that a job ran and that its stderr has the message.
 
 ---
 
@@ -439,7 +450,7 @@ writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
 
 ### `find ... -exec ... \;` is mangled in a command block
 
-Reported on Galaxy 25.1; the exact mechanism was not investigated. Replace it with a shell glob or loop, which also keeps file enumeration at runtime where remote execution needs it:
+Reported on Galaxy 25.1; the exact mechanism was not investigated. Writing the terminator as `';'` works. A shell glob or loop avoids the question and also keeps file enumeration at runtime, where remote execution needs it:
 
 ```
 mkdir -p out && mv work/*.fastq out/
@@ -447,6 +458,38 @@ for f in work/*.fastq; do gzip "\$f"; done
 ```
 
 *Delete when the Galaxy command-block docs cover escaping of `\;`.*
+
+### A literal `#` in a command or configfile is read by Cheetah
+
+`##` starts a Cheetah comment and swallows the rest of the line; `#` directly followed by a directive name (`#set`, `#if`, `#for`, ...) is read as one. `# comment` and `/^#CHROM/` pass through. It shows up in awk and sed patterns (`/^##/`) and in comments inside a generated R or Python script. Escape it as `\#`, or write `[#]` inside a regex:
+
+```
+awk '/^[#]/ { next } { print \$1 }' '$input' > out.tsv
+```
+
+*Delete when the Galaxy command-block docs cover escaping `#`.*
+
+### `sort_by="name"` on `discover_datasets` needs a `name` group
+
+With a pattern that captures `designation` (or uses `__designation_and_ext__`) there is no `name` to sort by, and the job fails once two or more files match (seen on Galaxy 25.1). Use `sort_by="filename"`.
+
+*Delete when the schema docs for `sort_by` say which keys need which groups.*
+
+### `planemo lint` reads Markdown help as RST
+
+With galaxy-tool-util 26.0 and older, the help linter parses `format="markdown"` help as reStructuredText. "Help contains valid reStructuredText" therefore says nothing about the Markdown, and Markdown that is not valid RST fails:
+
+```
+WARNING (HelpInvalidRST): ... Line block ends without a blank line
+```
+
+A pipe table is read as an RST line block, and nested lists trip it too. Galaxy 26.1 skips the RST check when the format is not `restructuredtext`. Until the planemo in use carries that, write tables as lists and keep lists flat. Nothing lints the Markdown itself: check it in `planemo serve`.
+
+*Delete when a planemo release bundles galaxy-tool-util 26.1 or later.*
+
+### No container runtime in the session
+
+`planemo test --biocontainers` needs the Docker socket, and planemo needs to bind a local port to start Galaxy. A sandboxed agent session often has neither ("permission denied while trying to connect to the docker API", or `PermissionError` in `get_free_port`). Stop and report the error. Record the tests as not run, and do not present a Cheetah render or a lint pass as a test result.
 
 ### `version_command` needs CDATA when it redirects
 
@@ -511,8 +554,9 @@ When `tool_test_output.json` reports `test-5`, that's the 6th test.
 - Always include `expect_num_outputs` to verify file counts
 - **Test data: aim for under 1 MB in total.** Shrink inputs first. For large outputs, use assertions or `compare="contains"` instead of a golden file. For a large input that cannot be made smaller, deposit it in the [Galaxy Tool Developers Zenodo community](https://zenodo.org/communities/galaxy_tool_dev_sig) and reference it with `<param name="input" location="https://zenodo.org/records/RECORD/files/FILE_NAME"/>`
 - Include tests for output filters to verify filtering actually occurs
-- Include tests for error conditions with expected failure
-- Include a hostile-input test for every free-text parameter
+- Always include one test that sets only the required inputs
+- Include an expected-failure test for each failure the wrapper itself detects (a runtime failure, not a rejected parameter value)
+- For every free-text parameter, run the hostile-input checks above
 - Include a test with compressed input and one with uncompressed input when the tool accepts both
 
 ---
