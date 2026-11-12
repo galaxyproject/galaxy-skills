@@ -4,9 +4,20 @@ id: echo-message
 version: "0.1.0"
 name: Echo a message
 description: Write a user-provided message to a text file
-container: busybox
-shell_command: |
-  echo "$(inputs.message)" > out.txt
+container: python:3.11-slim
+configfiles:
+  - filename: params.json
+    content: |
+      {"message": $(JSON.stringify(inputs.message))}
+  - filename: echo.py
+    content: |
+      import json
+
+      with open("params.json") as fh:
+          message = json.load(fh)["message"]
+      with open("out.txt", "w") as out:
+          out.write(message + "\n")
+shell_command: python echo.py
 inputs:
   - name: message
     type: text

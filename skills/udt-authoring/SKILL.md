@@ -39,9 +39,9 @@ A UDT = a **container** + a **`shell_command`** + typed **`inputs`** and **`outp
   is set by the Galaxy admin's job config, not by the tool.
 - Every **dataset/collection** output must **claim a file** it produced via `from_work_dir` (one
   file) or `discover_datasets` (many) -- you do not write to a templated output path.
-- Scalar `text`/`select` values interpolate into `shell_command` **unquoted** (unlike `base_command`
-  args, which are `shlex.quote`d) -- a value with spaces or quotes breaks the command. Quote them,
-  or pass free text via a configfile. See `references/templating.md`.
+- Scalar values interpolate into executable surfaces as raw text. Never put a free-form `text`
+  input directly in `shell_command` or script source, even inside quotes. Serialize it into a JSON
+  configfile with `JSON.stringify` and read it as data. See `references/templating.md`.
 
 If you find yourself writing `command:`, `$param`, `#for#`, `truevalue:`, or `${on_string}`, stop
 -- those are XML/Cheetah habits the schema rejects. See `references/common-mistakes.md`.
@@ -158,7 +158,8 @@ check offline before submitting. Three tiers, weakest to strongest:
 
 1. **Local** (fast, offline, side-effect-free): `python scripts/validate.py my-tool.yml`. Needs
    `pip install 'galaxy-tool-util>=26.1'`. Catches structural errors, the four semantic validators, and
-   lint warnings. Use this whenever a Python env is available (terminal, CI). See `scripts/`.
+   lint warnings, and direct free-text interpolation into executable surfaces. Use this whenever a
+   Python env is available (terminal, CI). See `scripts/`.
    **Version-sensitive:** the installed galaxy-tool-util *is* the schema, and the 26.1 behaviors this
    skill describes (data inputs rejecting `min`/`max`, a minimal `discover_datasets`,
    `--check-container`) need galaxy-tool-util **26.1+** -- so install
@@ -175,12 +176,14 @@ check offline before submitting. Three tiers, weakest to strongest:
    role). This is the final word, and the practical gate for environments without Python (e.g.
    Loom): submit, then iterate on the returned errors.
 
-> **Lint-clean is necessary but not sufficient.** Neither validate.py nor the server's create lint
+> **Validation-clean is necessary but not sufficient.** The deterministic security check covers
+> direct top-level `text` interpolation, not arbitrary ECMAScript or shell parsing. Neither it nor
+> the server's create lint
 > checks that the command actually succeeds. The one thing you *can* check ahead of time is the
 > container: a nonexistent tag (`manifest unknown` at run time) is the most common real-world UDT
 > failure, so resolve a verified image with `recommend_biocontainer` / `mulled-recommend` (see
 > "Choosing a Container") -- or run `validate.py --check-container` to test the tag you already have.
-> Beyond that, validation can't see runtime JS-expression errors, shell quoting, the server's
+> Beyond that, validation can't see runtime JS-expression errors, complex shell behavior, the server's
 > role/config gates, or whether the command produces the declared outputs -- only running the tool
 > does.
 

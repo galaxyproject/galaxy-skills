@@ -25,19 +25,19 @@ shell_command: |
   cat $(inputs.datasets.map((input) => input.path).join(' ')) > output.txt
 ```
 
-## Quoting: scalar values are not auto-quoted
+## Free text is data, not executable text
 
 Galaxy substitutes `$(...)` expressions into `shell_command` as **raw text** -- unlike `base_command`
 arguments, they are *not* run through `shlex.quote`. So a `text` or `select` value containing a
-space, quote, `$`, or other shell metacharacter will break or alter the command (it is also an
-injection vector if the value is attacker-controlled).
+space, quote, `$`, or other shell metacharacter can break or alter the command.
 
-- **Quote interpolations defensively:** `'$(inputs.reads.path)'`, `'$(inputs.label)'`.
-- **For free-form text you don't control, prefer a configfile** -- write the value into a JSON file
-  and read it in the command, rather than inlining it (see Config files below).
+- **Do not interpolate a free-form `text` input into executable text, even inside shell or language
+  quotes.** The raw value can terminate those quotes.
+- Serialize free text into a JSON configfile with `$(JSON.stringify(inputs.label))`, then read it as
+  data from the program.
 - **`select` inputs with a fixed option list, and numeric `integer`/`float`, are safe to inline** --
   their values can't contain surprises.
-- Data `.path` values are Galaxy-generated and normally clean, but quoting them costs nothing.
+- Data `.path` values are Galaxy-generated; quote them at the shell boundary.
 
 ## Job resources: `$GALAXY_SLOTS` (a shell variable, not an expression)
 
@@ -124,7 +124,8 @@ shell_command: >-
   d.describe().to_csv('summary.tsv', sep='\t')"
 ```
 
-**2. A few lines: embed it with a quoted heredoc.** Reference inputs with `$(inputs.x)` inside.
+**2. A few lines: embed it with a quoted heredoc.** Only interpolate Galaxy-generated paths or
+typed/fixed values inside.
 Galaxy expands the `$(...)` expressions **before** the shell runs, so a quoted heredoc (`<<'PY'`)
 is correct -- it stops the shell from re-expanding things, while Galaxy has already substituted the
 inputs:
@@ -135,7 +136,7 @@ shell_command: |
   python <<'PY'
   import csv
   table = '$(inputs.table.path)'      # Galaxy substitutes the path before the shell sees this
-  column = '$(inputs.column)'
+  column_index = $(inputs.column_index)
   with open(table) as fh:
       rows = list(csv.DictReader(fh, delimiter='\t'))
   with open('out.txt', 'w') as out:
@@ -143,7 +144,7 @@ shell_command: |
   PY
 inputs:
   - { name: table, type: data }
-  - { name: column, type: text }
+  - { name: column_index, type: integer, value: 0 }
 outputs:
   - { name: out, type: data, format: txt, from_work_dir: out.txt }
 ```

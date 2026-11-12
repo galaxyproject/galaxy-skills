@@ -21,7 +21,7 @@ plus a few schema-specific traps. Run through this before submitting.
 - [ ] Optional parameters have sensible `value` defaults.
 - [ ] Labels and description say what the tool actually does (not "Run the tool").
 - [ ] A real `help` block is present (object form `{format, content}`, no `TODO` placeholder).
-- [ ] Scalar `text`/`select` values are quoted in `shell_command` (or passed via a configfile) -- they interpolate unquoted.
+- [ ] Free-form `text` values are serialized with `JSON.stringify` into a data configfile and read as data, never interpolated into `shell_command` or script source.
 
 ## Mistakes table
 
@@ -46,7 +46,7 @@ plus a few schema-specific traps. Run through this before submitting.
 | Invented image/tag/flags | A guessed container or CLI flag fails at runtime. | Use only images/flags you can verify; otherwise ask. |
 | Unescaped literal `$(date)` in the command | Galaxy treats `$(...)` as an expression and errors/misfires. | Escape it: `\$(date)`. |
 | `help` omitted, a bare string, or a `TODO` stub | Galaxy wants `{format, content}`; an empty/missing help leaves a documentation-free black box on the tool page. | Write a real help block: 3 short paragraphs (what / inputs+outputs / caveats). |
-| Free-text scalar inlined unquoted in `shell_command` | `$(inputs.x)` for `text`/`select` interpolates raw (no `shlex.quote`); spaces/quotes break or inject into the command. | Quote it (`'$(inputs.x)'`) or pass free text via a configfile; fixed `select`/numeric values are safe. |
+| Free-text scalar inlined in `shell_command` or script source, even inside quotes | `$(inputs.x)` is raw text; user input can terminate the surrounding shell or language string. | Write `$(JSON.stringify(inputs.x))` to a JSON configfile and read it as data; fixed `select`/numeric values are safe to inline. |
 
 ## Verifying a container (the #1 runtime failure)
 

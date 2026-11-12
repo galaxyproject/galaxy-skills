@@ -20,6 +20,7 @@ Exit codes:
     3  missing dependency or unreadable input
 """
 
+import re
 import sys
 
 try:
@@ -36,6 +37,43 @@ except ImportError:
     sys.exit(3)
 
 from pydantic import ValidationError
+
+
+_TEMPLATE_BLOCK_RE = re.compile(r"\$\(([\s\S]*?)\)")
+_DIRECT_INPUT_EXPR_RE = re.compile(r"^\s*inputs\.([A-Za-z_][A-Za-z0-9_]*)\s*$")
+_SCRIPT_SUFFIXES = (".bash", ".cjs", ".js", ".mjs", ".pl", ".py", ".r", ".rb", ".sh")
+
+
+def _security_findings(data):
+    text_inputs = {
+        item["name"]
+        for item in data.get("inputs", [])
+        if isinstance(item, dict)
+        and item.get("type") == "text"
+        and isinstance(item.get("name"), str)
+    }
+    findings = []
+
+    def check(value, path):
+        if not isinstance(value, str):
+            return
+        for expression in _TEMPLATE_BLOCK_RE.findall(value):
+            match = _DIRECT_INPUT_EXPR_RE.fullmatch(expression)
+            if match and match.group(1) in text_inputs:
+                findings.append(
+                    f"{path}: dynamic_tool.unsafe_text_interpolation: free-text input "
+                    f"'inputs.{match.group(1)}' is substituted as executable text; serialize it "
+                    "into a config file with JSON.stringify and read it as data"
+                )
+
+    check(data.get("shell_command"), "shell_command")
+    for index, configfile in enumerate(data.get("configfiles", [])):
+        if not isinstance(configfile, dict):
+            continue
+        filename = configfile.get("filename")
+        if isinstance(filename, str) and filename.lower().endswith(_SCRIPT_SUFFIXES):
+            check(configfile.get("content"), f"configfiles.{index}.content")
+    return findings
 
 
 def _check_container(image):
@@ -59,9 +97,13 @@ def _check_container(image):
         print(f"Container OK: {image} is built on quay.io.")
         return 0
     if built is False:
-        print(f"Container MISSING: {image} is not built on quay.io -- the job would fail with 'manifest unknown'.")
+        print(
+            f"Container MISSING: {image} is not built on quay.io -- the job would fail with 'manifest unknown'."
+        )
         return 2
-    print(f"Container UNVERIFIED: could not check {image} (non-biocontainer reference or transient error).")
+    print(
+        f"Container UNVERIFIED: could not check {image} (non-biocontainer reference or transient error)."
+    )
     return 0
 
 
@@ -96,6 +138,13 @@ def main(argv):
     if findings:
         print("Lint findings (server create would reject these):")
         for bullet in findings:
+            print(f"  - {bullet}")
+        return 2
+
+    security_findings = _security_findings(data)
+    if security_findings:
+        print("Security findings:")
+        for bullet in security_findings:
             print(f"  - {bullet}")
         return 2
 
