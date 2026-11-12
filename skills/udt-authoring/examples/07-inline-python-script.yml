@@ -12,19 +12,20 @@ shell_command: |
   python <<'PY'
   import csv
   path = '$(inputs.table.path)'
-  column = '$(inputs.column)'
+  column_index = $(inputs.column_index)
   values = []
   with open(path, newline='') as fh:
       reader = csv.DictReader(fh, delimiter='\t')
       for row in reader:
-          cell = row.get(column, '')
+          cells = list(row.values())
+          cell = cells[column_index] if column_index < len(cells) else ''
           if cell not in ('', None):
               values.append(float(cell))
   if not values:
-      raise SystemExit(f'No numeric values found in column {column!r}')
+      raise SystemExit(f'No numeric values found in column {column_index}')
   n = len(values)
   with open('summary.txt', 'w') as out:
-      out.write(f'column\t{column}\n')
+      out.write(f'column_index\t{column_index}\n')
       out.write(f'count\t{n}\n')
       out.write(f'mean\t{sum(values) / n}\n')
       out.write(f'min\t{min(values)}\n')
@@ -35,10 +36,11 @@ inputs:
     type: data
     format: tabular
     label: Tabular input
-  - name: column
-    type: text
-    label: Column name to summarize
-    help: Must match a column header in the tabular file.
+  - name: column_index
+    type: integer
+    value: 0
+    min: 0
+    label: Zero-based column index
 outputs:
   - name: summary
     type: data
@@ -50,7 +52,7 @@ help:
   content: |
     Reports count, mean, min, and max of one numeric column in a tabular file.
 
-    **Inputs** -- `table`: a tabular file; `column`: the column header to summarize.
+    **Inputs** -- `table`: a tabular file; `column_index`: the zero-based column to summarize.
     **Outputs** -- `summary`: a small text report.
 
-    The column must match a header in the file; non-numeric/empty cells are skipped.
+    Empty and non-numeric cells are skipped.
