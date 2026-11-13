@@ -483,7 +483,7 @@ With galaxy-tool-util 26.0 and older, the help linter parses `format="markdown"`
 WARNING (HelpInvalidRST): ... Line block ends without a blank line
 ```
 
-A pipe table is read as an RST line block, and nested lists trip it too. Galaxy 26.1 skips the RST check when the format is not `restructuredtext`. Until the planemo in use carries that, write tables as lists and keep lists flat. Nothing lints the Markdown itself: check it in `planemo serve`.
+A pipe table is read as an RST line block, and nested lists trip it too. Galaxy 26.1 skips the RST check when the format is not `restructuredtext`. If lint fails this way, update planemo and galaxy-tool-util (`pip install -U planemo galaxy-tool-util`) rather than rewriting the help. Nothing lints the Markdown itself: check it in `planemo serve`.
 
 *Delete when a planemo release bundles galaxy-tool-util 26.1 or later.*
 
